@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SafeQR | Customize Your QR</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <style>
+  body {
+    margin: 0; padding: 0; min-height: 100vh; font-family: 'Inter', sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    color: #e2e8f0; background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
+  }
+  header {
+    background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); width: 100%;
+    padding: 1rem 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    position: sticky; top: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  h1 { color: #6366f1; font-weight: 700; font-size: 1.25rem; margin: 0; }
+  #finalCanvas { border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.4); display: block; margin: auto; }
+  .color-btn { width: 36px; height: 36px; border-radius: 9999px; border: 2px solid #fff; cursor: pointer; transition: transform 0.2s; }
+  .color-btn:hover { transform: scale(1.1); }
+  .color-btn.active { border: 3px solid #6366f1; transform: scale(1.1); }
+  .person-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px }
+  .person-tab { padding:6px 10px; border-radius:8px; background:#111827; color:#cbd5e1; cursor:pointer }
+  .person-tab.active { background:#4f46e5; color:white }
+
+  :root {
+    --primary: #ef4444;
+    --primary-light: #f87171;
+    --dark: #1C212E;
+    --grey-dark: #3F4656;
+    --grey: #6C7486;
+    --grey-light: #CDD9ED;
+    --white: #FFF;
+    --green: #16BF78;
+    --sand: #fbbf24;
+    --sand-light: #fcd34d;
+  }
+  
+  .order {
+    -webkit-appearance: none;
+       -moz-appearance: none;
+            appearance: none;
+    border: 0;
+    background: var(--dark);
+    position: relative;
+    height: 63px;
+    width: 240px;
+    padding: 0;
+    outline: none;
+    cursor: pointer;
+    border-radius: 32px;
+    -webkit-mask-image: radial-gradient(circle, white, black); 
+    mask-image: radial-gradient(circle, white, black); 
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+  .order span {
+    --o: 1;
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    top: 19px;
+    line-height: 24px;
+    color: var(--white);
+    font-size: 16px;
+    font-weight: 500;
+    opacity: var(--o);
+    transition: opacity 0.3s ease;
+  }
+  .order span.default {
+    transition-delay: 0.3s;
+  }
+  .order span.success {
+    --offset: 16px;
+    --o: 0;
+  }
+  .order span.success svg {
+    width: 12px;
+    height: 10px;
+    display: inline-block;
+    vertical-align: top;
+    fill: none;
+    margin: 7px 0 0 4px;
+    stroke: var(--green);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 16px;
+    stroke-dashoffset: var(--offset);
+    transition: stroke-dashoffset 0.3s ease;
+  }
+  .order:active {
+    transform: scale(0.96);
+  }
+  .order .lines {
+    opacity: 0;
+    position: absolute;
+    height: 3px;
+    background: var(--white);
+    border-radius: 2px;
+    width: 6px;
+    top: 30px;
+    left: 100%;
+    box-shadow: 15px 0 0 var(--white), 30px 0 0 var(--white), 45px 0 0 var(--white), 60px 0 0 var(--white), 75px 0 0 var(--white), 90px 0 0 var(--white), 105px 0 0 var(--white), 120px 0 0 var(--white), 135px 0 0 var(--white), 150px 0 0 var(--white), 165px 0 0 var(--white), 180px 0 0 var(--white), 195px 0 0 var(--white), 210px 0 0 var(--white), 225px 0 0 var(--white), 240px 0 0 var(--white), 255px 0 0 var(--white), 270px 0 0 var(--white), 285px 0 0 var(--white), 300px 0 0 var(--white), 315px 0 0 var(--white), 330px 0 0 var(--white);
+  }
+  .order .back,
+  .order .box {
+    --start: var(--white);
+    --stop: var(--grey-light);
+    border-radius: 2px;
+    background: linear-gradient(var(--start), var(--stop));
+    position: absolute;
+  }
+  .order .truck {
+    width: 60px;
+    height: 41px;
+    left: 100%;
+    z-index: 1;
+    top: 11px;
+    position: absolute;
+    transform: translateX(24px);
+  }
+  .order .truck:before, .order .truck:after {
+    --r: -90deg;
+    content: "";
+    height: 2px;
+    width: 20px;
+    right: 58px;
+    position: absolute;
+    display: block;
+    background: var(--white);
+    border-radius: 1px;
+    transform-origin: 100% 50%;
+    transform: rotate(var(--r));
+  }
+  .order .truck:before {
+    top: 4px;
+  }
+  .order .truck:after {
+    --r: 90deg;
+    bottom: 4px;
+  }
+  .order .truck .back {
+    left: 0;
+    top: 0;
+    width: 60px;
+    height: 41px;
+    z-index: 1;
+  }
+  .order .truck .front {
+    overflow: hidden;
+    position: absolute;
+    border-radius: 2px 9px 9px 2px;
+    width: 26px;
+    height: 41px;
+    left: 60px;
+  }
+  .order .truck .front:before, .order .truck .front:after {
+    content: "";
+    position: absolute;
+    display: block;
+  }
+  .order .truck .front:before {
+    height: 13px;
+    width: 2px;
+    left: 0;
+    top: 14px;
+    background: linear-gradient(var(--grey), var(--grey-dark));
+  }
+  .order .truck .front:after {
+    border-radius: 2px 9px 9px 2px;
+    background: var(--primary);
+    width: 24px;
+    height: 41px;
+    right: 0;
+  }
+  .order .truck .front .window {
+    overflow: hidden;
+    border-radius: 2px 8px 8px 2px;
+    background: var(--primary-light);
+    transform: perspective(4px) rotateY(3deg);
+    width: 22px;
+    height: 41px;
+    position: absolute;
+    left: 2px;
+    top: 0;
+    z-index: 1;
+    transform-origin: 0 50%;
+  }
+  .order .truck .front .window:before, .order .truck .front .window:after {
+    content: "";
+    position: absolute;
+    right: 0;
+  }
+  .order .truck .front .window:before {
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    background: var(--dark);
+  }
+  .order .truck .front .window:after {
+    width: 14px;
+    top: 7px;
+    height: 4px;
+    position: absolute;
+    background: rgba(255, 255, 255, 0.14);
+    transform: skewY(14deg);
+    box-shadow: 0 7px 0 rgba(255, 255, 255, 0.14);
+  }
+  .order .truck .light {
+    width: 3px;
+    height: 8px;
+    left: 83px;
+    transform-origin: 100% 50%;
+    position: absolute;
+    border-radius: 2px;
+    transform: scaleX(0.8);
+    background: #f0dc5f;
+  }
+  .order .truck .light:before {
+    content: "";
+    height: 4px;
+    width: 7px;
+    opacity: 0;
+    transform: perspective(2px) rotateY(-15deg) scaleX(0.94);
+    position: absolute;
+    transform-origin: 0 50%;
+    left: 3px;
+    top: 50%;
+    margin-top: -2px;
+    background: linear-gradient(90deg, #f0dc5f, rgba(240, 220, 95, 0.7), rgba(240, 220, 95, 0));
+  }
+  .order .truck .light.top {
+    top: 4px;
+  }
+  .order .truck .light.bottom {
+    bottom: 4px;
+  }
+  .order .box {
+    --start: var(--sand-light);
+    --stop: var(--sand);
+    width: 21px;
+    height: 21px;
+    right: 100%;
+    top: 21px;
+  }
+  .order .box:before, .order .box:after {
+    content: "";
+    top: 10px;
+    position: absolute;
+    left: 0;
+    right: 0;
+  }
+  .order .box:before {
+    height: 3px;
+    margin-top: -1px;
+    background: rgba(0, 0, 0, 0.1);
+  }
+  .order .box:after {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.15);
+  }
+  .order.animate .default {
+    --o: 0;
+    transition-delay: 0s;
+  }
+  .order.animate .success {
+    --offset: 0;
+    --o: 1;
+    transition-delay: 7s;
+  }
+  .order.animate .success svg {
+    transition-delay: 7.3s;
+  }
+  .order.animate .truck {
+    -webkit-animation: truck 10s ease forwards;
+            animation: truck 10s ease forwards;
+  }
+  .order.animate .truck:before {
+    -webkit-animation: door1 2.4s ease forwards 0.3s;
+            animation: door1 2.4s ease forwards 0.3s;
+  }
+  .order.animate .truck:after {
+    -webkit-animation: door2 2.4s ease forwards 0.6s;
+            animation: door2 2.4s ease forwards 0.6s;
+  }
+  .order.animate .truck .light:before, .order.animate .truck .light:after {
+    -webkit-animation: light 10s ease forwards;
+            animation: light 10s ease forwards;
+  }
+  .order.animate .box {
+    -webkit-animation: box 10s ease forwards;
+            animation: box 10s ease forwards;
+  }
+  .order.animate .lines {
+    -webkit-animation: lines 10s ease forwards;
+            animation: lines 10s ease forwards;
+  }
+  
+  @-webkit-keyframes truck { 10%, 30% { transform: translateX(-164px); } 40% { transform: translateX(-104px); } 60% { transform: translateX(-224px); } 75%, 100% { transform: translateX(24px); } }
+  @keyframes truck { 10%, 30% { transform: translateX(-164px); } 40% { transform: translateX(-104px); } 60% { transform: translateX(-224px); } 75%, 100% { transform: translateX(24px); } }
+  @-webkit-keyframes lines { 0%, 30% { opacity: 0; transform: scaleY(0.7) translateX(0); } 35%, 65% { opacity: 1; } 70% { opacity: 0; } 100% { transform: scaleY(0.7) translateX(-400px); } }
+  @keyframes lines { 0%, 30% { opacity: 0; transform: scaleY(0.7) translateX(0); } 35%, 65% { opacity: 1; } 70% { opacity: 0; } 100% { transform: scaleY(0.7) translateX(-400px); } }
+  @-webkit-keyframes light { 0%, 30% { opacity: 0; transform: perspective(2px) rotateY(-15deg) scaleX(0.88); } 40%, 100% { opacity: 1; transform: perspective(2px) rotateY(-15deg) scaleX(0.94); } }
+  @keyframes light { 0%, 30% { opacity: 0; transform: perspective(2px) rotateY(-15deg) scaleX(0.88); } 40%, 100% { opacity: 1; transform: perspective(2px) rotateY(-15deg) scaleX(0.94); } }
+  @-webkit-keyframes door1 { 30%, 50% { transform: rotate(32deg); } }
+  @keyframes door1 { 30%, 50% { transform: rotate(32deg); } }
+  @-webkit-keyframes door2 { 30%, 50% { transform: rotate(-32deg); } }
+  @keyframes door2 { 30%, 50% { transform: rotate(-32deg); } }
+  @-webkit-keyframes box { 8%, 10% { transform: translateX(40px); opacity: 1; } 25% { transform: translateX(112px); opacity: 1; } 26% { transform: translateX(112px); opacity: 0; } 27%, 100% { transform: translateX(0px); opacity: 0; } }
+  @keyframes box { 8%, 10% { transform: translateX(40px); opacity: 1; } 25% { transform: translateX(112px); opacity: 1; } 26% { transform: translateX(112px); opacity: 0; } 27%, 100% { transform: translateX(0px); opacity: 0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SafeQR – Customize Your QR</h1>
+    <button id="viewCartBtn" class="bg-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-700 font-semibold">View Cart</button>
+  </header>
+
+  <main class="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+    <div class="col-span-2 bg-slate-900/50 p-4 rounded-xl shadow-lg mb-4 text-center">
+      <p class="text-indigo-300 text-lg">Selected Plan: <span id="displayPlan" class="font-bold text-white">-</span></p>
+      <p class="text-indigo-300 text-lg">Customizing for: <span id="displayPerson" class="font-bold text-white">-</span></p>
+      <div id="personTabsPlaceholder"></div>
+    </div>
+
+    <section class="bg-gray-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center">
+      <h2 class="text-xl font-semibold text-indigo-400 mb-4">QR Preview</h2>
+      <canvas id="finalCanvas" width="300" height="300"></canvas>
+      <div id="notice" class="text-sm text-yellow-400 mt-4 h-5"></div>
+      <button id="addToCartBtn" class="mt-4 bg-indigo-600 px-5 py-2.5 rounded-lg hover:bg-indigo-700 font-bold text-lg">Add to Cart</button>
+    </section>
+
+    <section class="bg-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
+      <h2 class="text-xl font-semibold text-indigo-400 mb-2">Customize</h2>
+      <div>
+        <label class="block text-sm text-indigo-300 mb-1">Logo / Design</label>
+        <select id="presetDesign" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100"></select>
+      </div>
+      <div>
+        <label class="block text-sm text-indigo-300 mb-1">Background</label>
+        <select id="backgroundDesign" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100"></select>
+      </div>
+       <div>
+        <label class="block text-sm text-indigo-300 mb-1">Foreground Color</label>
+        <div class="flex space-x-3 pt-1">
+          <div class="color-btn active" data-color="#000000" style="background:#000000"></div>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm text-indigo-300 mb-1">Dot Style</label>
+        <select id="dotStyle" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100">
+          <option value="square">Square</option>
+          <option value="dots">Dots</option>
+          <option value="rounded">Rounded</option>
+          <option value="classy">Classy</option>
+          <option value="classy-rounded">Classy Rounded</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm text-indigo-300 mb-1">Corner Style</label>
+        <select id="cornerStyle" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100">
+          <option value="square">Square</option>
+          <option value="dot">Dot</option>
+          <option value="extra-rounded">Extra Rounded</option>
+        </select>
+      </div>
+      <div class="pt-4 border-t border-gray-700">
+        <button id="resetQR" class="w-full bg-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700 font-semibold">Reset to Default</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-75 hidden justify-center items-center z-50 p-4">
+    <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl max-w-3xl w-full relative border border-indigo-500/30">
+        <h3 class="text-2xl mb-4 font-semibold text-white">Your Order Summary</h3>
+        <div id="cartItems" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[40vh] overflow-y-auto pr-2"></div>
+        <div class="mt-6 pt-4 border-t border-gray-700 text-lg space-y-2">
+        <div class="flex justify-between"><span class="text-gray-400">Plan Cost:</span> <span id="cartPlanCost" class="font-semibold text-white">?0.00</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">Additional QRs:</span> <span id="cartAdditionalCost" class="font-semibold text-white">?0.00</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">Subtotal:</span> <span id="cartSubtotal" class="font-semibold text-white">?0.00</span></div>
+        <div class="flex justify-between"><span class="text-gray-400">GST (18%):</span> <span id="cartGst" class="font-semibold text-white">?0.00</span></div>
+        <hr class="border-gray-600 my-2">
+        <div class="flex justify-between text-xl"><span class="font-bold text-indigo-300">Total Amount:</span> <span id="cartTotal" class="font-bold text-indigo-300">?0.00</span></div>
+        </div>
+        <div class="mt-6 flex justify-between items-center">
+        <button id="closeCartBtn" class="px-5 py-2 bg-gray-600 rounded-lg font-semibold hover:bg-gray-500">Close</button>
+        <button id="completeOrderBtn" class="order">
+            <span class="default">Complete Order</span>
+            <span class="success">Order Placed<svg viewBox="0 0 12 10"><polyline points="1.5 6 4.5 9 10.5 1"></polyline></svg></span>
+            <div class="box"></div><div class="truck"><div class="back"></div><div class="front"><div class="window"></div></div><div class="light top"></div><div class="light bottom"></div></div><div class="lines"></div>
+        </button>
+        </div>
+    </div>
+  </div>
+
+<div id="freeLimitModal" class="fixed inset-0 bg-black bg-opacity-60 hidden justify-center items-center z-60 p-4">
+  <div class="bg-gray-900 p-6 rounded-xl max-w-md w-full border border-indigo-600">
+    <h4 class="text-xl font-semibold mb-3 text-white">Free custom QR limit reached</h4>
+    <p class="text-gray-300 mb-4">You have used all your free custom QRs. Additional QRs can be added for ?20 each. Do you wish to continue?</p>
+    <div class="flex justify-end gap-3">
+      <button id="freeCancelBtn" class="px-4 py-2 rounded bg-gray-700">Cancel</button>
+      <button id="freeContinueBtn" class="px-4 py-2 rounded bg-indigo-600">Continue (?20 each)</button>
+    </div>
+  </div>
+</div>
+
+<div id="infoModal" class="fixed inset-0 bg-black bg-opacity-60 hidden justify-center items-center z-50 p-4">
+  <div class="bg-gray-900 p-6 rounded-xl max-w-md w-full border border-indigo-600 text-center">
+    <h4 id="infoModalTitle" class="text-xl font-semibold mb-3 text-white">Info</h4>
+    <p id="infoModalMessage" class="text-gray-300 mb-4">Message here...</p>
+    <div class="flex justify-center">
+      <button id="infoModalOkBtn" class="px-5 py-2 bg-indigo-600 rounded-lg font-semibold hover:bg-indigo-500">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="addressModal" class="fixed inset-0 bg-black bg-opacity-75 hidden justify-center items-center z-50 p-4">
+  <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl max-w-lg w-full relative border border-indigo-500/30">
+    <h3 class="text-2xl mb-5 font-semibold text-white">Delivery Information</h3>
+    <form id="addressForm" class="space-y-3">
+      <div>
+        <label for="name" class="block text-sm font-medium text-indigo-300 mb-1">Full Name</label>
+        <input type="text" id="name" name="name" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:ring-indigo-500 focus:border-indigo-500">
+      </div>
+      <div>
+        <label for="street" class="block text-sm font-medium text-indigo-300 mb-1">Street Address</label>
+        <input type="text" id="street" name="street" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:ring-indigo-500 focus:border-indigo-500">
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+              <label for="city" class="block text-sm font-medium text-indigo-300 mb-1">City</label>
+              <input type="text" id="city" name="city" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:ring-indigo-500 focus:border-indigo-500">
+          </div>
+          <div>
+              <label for="state" class="block text-sm font-medium text-indigo-300 mb-1">State</label>
+              <input type="text" id="state" name="state" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:ring-indigo-500 focus:border-indigo-500">
+          </div>
+      </div>
+      <div>
+        <label for="zip" class="block text-sm font-medium text-indigo-300 mb-1">ZIP Code</label>
+        <input type="text" id="zip" name="zip" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:ring-indigo-500 focus:border-indigo-500">
+      </div>
+      <div>
+        <label for="phone" class="block text-sm font-medium text-indigo-300 mb-1">Phone Number</label>
+        <input type="tel" id="phone" name="phone" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:ring-indigo-500 focus:border-indigo-500">
+      </div>
+      <div>
+        <label for="alternatePhone" class="block text-sm font-medium text-indigo-300 mb-1">Alternate Phone Number (Optional)</label>
+        <input type="tel" id="alternatePhone" name="alternatePhone" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:ring-indigo-500 focus:border-indigo-500">
+      </div>
+      <div class="mt-6 flex justify-between items-center pt-4">
+        <button type="button" id="cancelAddressBtn" class="px-5 py-2 bg-gray-600 rounded-lg font-semibold hover:bg-gray-500">Cancel</button>
+        <button type="submit" id="proceedToPaymentBtn" class="px-5 py-2.5 bg-green-600 rounded-lg hover:bg-green-700 font-bold text-lg">Proceed to Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.js"></script>
+
+<script>
+    // ===== CONFIGURATION & GLOBAL STATE =====
+    // THE FIX IS HERE: Change the API_BASE_URL to your actual running server address
+    const API_BASE_URL = "https://safeqr.life"; 
+    const ASSETS_BASE = './assets';
+    const SAFEQR_LOGO_URL = './assets/safeqr-logo.png';
+    const planConfig = {
+        basic: { price: 249, auto: [{person:1,count:4}], freeCustomQRsTotal: 2 },
+        pro: { price: 549, auto: [{person:1,count:2},{person:2,count:2}], freeCustomQRsPerPerson: 4 },
+        family: { price: 999, auto: [{person:1,count:2},{person:2,count:2},{person:3,count:2},{person:4,count:2}], freeCustomQRsPerPerson: 4 }
+    };
+    let qrCode;
+    let cart = JSON.parse(localStorage.getItem("safeqrCart")) || { plan: 'basic', items: [] };
+    let currentPersonIndex = 1;
+    let pendingAddItem = null; 
+
+    // ===== HELPER FUNCTIONS =====
+    function createFullUrl(page, params = '') {
+        const path = window.location.pathname;
+        const basePath = path.substring(0, path.lastIndexOf('/') + 1);
+        return window.location.origin + basePath + page + params;
+    }
+
+    function getPresetImagePath(preset) {
+      if (!preset || preset === 'basic') return null;
+      if (preset.startsWith('design')) return `${ASSETS_BASE}/designs/${preset.replace('design','')}.png`;
+      if (preset === 'safeqr-logo') return SAFEQR_LOGO_URL;
+      return null;
+    }
+
+    function getBackgroundImagePath(bg) {
+      if (!bg || bg === 'none') return null;
+      return `${ASSETS_BASE}/backgrounds/${bg}.png`;
+    }
+
+    function showInfoModal(title, message) {
+      document.getElementById("infoModalTitle").textContent = title;
+      document.getElementById("infoModalMessage").textContent = message;
+      document.getElementById("infoModal").style.display = "flex";
+    }
+
+    function getFirstName(personIndex){
+        try {
+            const all = JSON.parse(localStorage.getItem('safeqrAllPersonsData')||'[]');
+            const p = all.find(x => parseInt(x.personIndex) === parseInt(personIndex));
+            if(p && p.textData && p.textData[`person_${personIndex}_fullName`]){
+                return p.textData[`person_${personIndex}_fullName`].split(' ')[0];
+            }
+        } catch(e){}
+        return `Person ${personIndex}`;
+    }
+
+    // ===== CORE LOGIC =====
+    function populateSelectors() {
+        const presetDesignSelect = document.getElementById('presetDesign');
+        const backgroundDesignSelect = document.getElementById('backgroundDesign');
+        const presets = [{ value: "safeqr-logo", label: "SafeQR Logo" }, { value: "basic", label: "No Logo" }];
+        for(let i = 1; i <= 55; i++) presets.push({ value: `design${i}`, label: `Design ${i}` });
+        presetDesignSelect.innerHTML = presets.map(p => `<option value="${p.value}">${p.label}</option>`).join('');
+        const backgrounds = [{ value: "none", label: "None" }];
+        for(let i = 1; i <= 12; i++) backgrounds.push({ value: `bg${i}`, label: `Background ${i}` });
+        backgroundDesignSelect.innerHTML = backgrounds.map(b => `<option value="${b.value}">${b.label}</option>`).join('');
+    }
+
+    async function renderFinalQR() {
+        try {
+            const finalCanvas = document.getElementById('finalCanvas');
+            const ctx = finalCanvas.getContext('2d');
+            const presetDesignSelect = document.getElementById('presetDesign');
+            const backgroundDesignSelect = document.getElementById('backgroundDesign');
+            const dotStyleSelect = document.getElementById('dotStyle');
+            const cornerStyleSelect = document.getElementById('cornerStyle');
+            const ownerId = localStorage.getItem('safeqrOwnerId');
+
+            document.getElementById('notice').textContent = "Rendering...";
+            const qrData = createFullUrl('view.html', `?ownerId=${ownerId}&person=${currentPersonIndex}`);
+            
+            qrCode.update({
+                data: qrData,
+                image: getPresetImagePath(presetDesignSelect.value) || null,
+                dotsOptions: { color: document.querySelector('.color-btn.active').dataset.color, type: dotStyleSelect.value },
+                cornersSquareOptions: { type: cornerStyleSelect.value, color: document.querySelector('.color-btn.active').dataset.color },
+            });
+            const blob = await qrCode.getRawData("png");
+            const qrUrl = URL.createObjectURL(blob);
+            const qrImg = new Image();
+            qrImg.src = qrUrl;
+            qrImg.onload = async () => {
+                ctx.clearRect(0, 0, finalCanvas.width, finalCanvas.height);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+                const bgImgPath = getBackgroundImagePath(backgroundDesignSelect.value);
+                if (bgImgPath) {
+                    const bgImage = new Image();
+                    bgImage.src = bgImgPath;
+                    await new Promise(res => { bgImage.onload = res; bgImage.onerror = res; });
+                    ctx.drawImage(bgImage, 0, 0, finalCanvas.width, finalCanvas.height);
+                }
+                ctx.drawImage(qrImg, 0, 0, finalCanvas.width, finalCanvas.height);
+                URL.revokeObjectURL(qrUrl);
+                document.getElementById('notice').textContent = "";
+            };  
+        } catch (err) {
+            console.error("renderFinalQR error:", err);
+            document.getElementById('notice').textContent = "Error rendering preview.";
+        }
+    }
+
+    // ===== CART LOGIC =====
+    function calculateTotalAmount() {
+        const plan = cart.plan || 'basic';
+        const cfg = planConfig[plan];
+        const basePrice = cfg.price;
+        let extraCount = 0;
+        if (plan === 'basic') {
+            const totalCustoms = cart.items.filter(it => !it.auto).length;
+            extraCount = Math.max(0, totalCustoms - (cfg.freeCustomQRsTotal || 0));
+        } else {
+            const persons = (plan === 'pro' ? [1, 2] : [1, 2, 3, 4]);
+            persons.forEach(p => {
+                const customsForPerson = cart.items.filter(it => it.personIndex === p && !it.auto).length;
+                extraCount += Math.max(0, customsForPerson - (cfg.freeCustomQRsPerPerson || 0));
+            });
+        }
+        const additionalCost = extraCount * 20;
+        const subtotal = basePrice + additionalCost;
+        const gst = subtotal * 0.18;
+        return subtotal + gst;
+    }
+    
+    function updateCartDisplay() {
+        const plan = cart.plan || 'basic';
+        const cfg = planConfig[plan];
+        const basePrice = cfg.price;
+        let extraCount = 0;
+        if (plan === 'basic') {
+            const totalCustoms = cart.items.filter(it => !it.auto).length;
+            extraCount = Math.max(0, totalCustoms - (cfg.freeCustomQRsTotal || 0));
+        } else {
+            const persons = (plan === 'pro' ? [1, 2] : [1, 2, 3, 4]);
+            persons.forEach(p => {
+                const customsForPerson = cart.items.filter(it => it.personIndex === p && !it.auto).length;
+                extraCount += Math.max(0, customsForPerson - (cfg.freeCustomQRsPerPerson || 0));
+            });
+        }
+        const additionalCost = extraCount * 20;
+        const subtotal = basePrice + additionalCost;
+        const gst = subtotal * 0.18;
+        const total = subtotal + gst;
+        document.getElementById('cartPlanCost').textContent = `?${basePrice.toFixed(2)}`;
+        document.getElementById('cartAdditionalCost').textContent = `?${additionalCost.toFixed(2)} (${extraCount} x ?20)`;
+        document.getElementById('cartSubtotal').textContent = `?${subtotal.toFixed(2)}`;
+        document.getElementById('cartGst').textContent = `?${gst.toFixed(2)}`;
+        document.getElementById('cartTotal').textContent = `?${total.toFixed(2)}`;
+    }
+
+    function openCart() {
+        document.getElementById('freeLimitModal').style.display = "none";
+        document.getElementById('cartModal').style.display = "flex";
+        const cartItemsDiv = document.getElementById('cartItems');
+        cartItemsDiv.innerHTML = '';
+        if (cart.items.length === 0) {
+            cartItemsDiv.innerHTML = `<p class="col-span-full text-center text-gray-400">Your cart is empty.</p>`;
+        } else {
+            cart.items.forEach(item => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'p-2 bg-gray-700 rounded-lg text-sm text-gray-300 flex flex-col items-center text-center';
+               wrapper.innerHTML = `
+                  <img src="${item.imgData}" class="w-full h-auto rounded-md mb-2">
+                  <p class="font-bold">${item.itemName || `Person ${item.personIndex}`}</p>
+                  <p class="text-xs">${item.design}${item.auto ? ' (Auto)' : ''}</p>`;
+                cartItemsDiv.appendChild(wrapper);
+            });
+        }
+        updateCartDisplay();
+    }
+
+    function addToCart() {
+        const personName = getFirstName(currentPersonIndex);
+        const item = {
+            personIndex: currentPersonIndex,
+            itemName: personName,
+            imgData: document.getElementById('finalCanvas').toDataURL('image/png'),
+            design: document.getElementById('presetDesign').value || 'safeqr-logo',
+            background: document.getElementById('backgroundDesign').value || 'none',
+            color: document.querySelector('.color-btn.active').dataset.color,
+            dotStyle: document.getElementById('dotStyle').value,
+            cornerStyle: document.getElementById('cornerStyle').value,
+            auto: false
+        };
+        let freeLimit, currentCustoms;
+        if (cart.plan === 'basic') {
+            freeLimit = planConfig.basic.freeCustomQRsTotal || 0;
+            currentCustoms = cart.items.filter(it => !it.auto).length;
+        } else {
+            freeLimit = planConfig[cart.plan].freeCustomQRsPerPerson || 0;
+            currentCustoms = cart.items.filter(it => it.personIndex === item.personIndex && !it.auto).length;
+        }
+        if (currentCustoms < freeLimit) {
+            cart.items.push(item);
+            localStorage.setItem('safeqrCart', JSON.stringify(cart));
+            showInfoModal("QR Added", `The QR for ${getFirstName(item.personIndex)} has been added to your cart (free).`);
+            updateCartDisplay();
+        } else {
+            pendingAddItem = item;
+            document.getElementById('freeLimitModal').style.display = 'flex';
+        }
+    }
+
+    // ===== INITIALIZATION & EVENT LISTENERS =====
+    document.addEventListener('DOMContentLoaded', async () => {
+        
+        // BUG FIX: Attach modal button listeners first to ensure they always work.
+        document.getElementById("infoModalOkBtn").addEventListener("click", () => document.getElementById("infoModal").style.display = "none");
+        document.getElementById('closeCartBtn').addEventListener('click', () => document.getElementById('cartModal').style.display = "none");
+        document.getElementById('freeCancelBtn').addEventListener('click', () => {
+            pendingAddItem = null;
+            document.getElementById('freeLimitModal').style.display = "none";
+        });
+        document.getElementById('cancelAddressBtn').addEventListener('click', () => {
+            document.getElementById('addressModal').style.display = 'none';
+        });
+
+        // --- Start of original validation ---
+        let allPersonsData = [];
+        try {
+            allPersonsData = JSON.parse(localStorage.getItem('safeqrAllPersonsData') || '[]');
+        } catch (e) {
+            showInfoModal( "Data Error", "Could not read profile data. Return to 'View Profile' page to refresh it.");
+            return;
+        }
+
+        if (allPersonsData.length === 0) {
+            showInfoModal( "Profile Data Not Found", "Please go to 'View Profile' page first, then click 'Customize Your QR'.");
+            return;
+        }
+        
+        const ownerId = localStorage.getItem('safeqrOwnerId');
+        if (!ownerId) {
+            showInfoModal("ID Error", "Could not find the profile Owner ID. Please go back to the 'View Profile' page.");
+            return;
+        }
+        // --- End of original validation ---
+
+        const colors = ["#000000"];
+        const colorContainer = document.querySelector('.color-btn').parentElement;
+        colorContainer.innerHTML = '';
+        colors.forEach((color, index) => {
+            const btn = document.createElement('div');
+            btn.className = 'color-btn';
+            if (index === 0) btn.classList.add('active');
+            btn.dataset.color = color;
+            btn.style.background = color;
+            colorContainer.appendChild(btn);
+        });
+        
+        let currentPlan = 'basic';
+        let personIndexes = [1];
+        if (allPersonsData.length >= 4) { currentPlan = 'family'; }
+        else if (allPersonsData.length >= 2) { currentPlan = 'pro'; }
+        personIndexes = allPersonsData.map(p => p.personIndex);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const personFromUrl = parseInt(urlParams.get("person"), 10);
+        currentPersonIndex = personIndexes.includes(personFromUrl) ? personFromUrl : personIndexes[0];
+
+        cart.plan = currentPlan;
+        localStorage.setItem("safeqrCart", JSON.stringify(cart));
+        
+        document.getElementById('displayPlan').textContent = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+        document.getElementById('displayPerson').textContent = getFirstName(currentPersonIndex);
+
+        populateSelectors();
+
+        qrCode = new QRCodeStyling({
+            width: 300, height: 300, type: "canvas",
+            data: createFullUrl('view.html', `?ownerId=${ownerId}&person=${currentPersonIndex}`),
+            image: SAFEQR_LOGO_URL,
+            imageOptions: { margin: 16, imageSize: 0.36, hideBackgroundDots: true },
+            backgroundOptions: { color: "transparent" },
+        });
+
+        const personTabsContainer = document.getElementById('personTabsPlaceholder');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'person-tabs';
+        personIndexes.forEach(idx => {
+            const btn = document.createElement('div');
+            btn.className = 'person-tab' + (idx === currentPersonIndex ? ' active' : '');
+            btn.dataset.person = idx;
+            btn.textContent = getFirstName(idx);
+            btn.addEventListener('click', () => { window.location.search = `?person=${idx}`; });
+            wrapper.appendChild(btn);
+        });
+        personTabsContainer.appendChild(wrapper);
+        
+        const presetDesignSelect = document.getElementById('presetDesign');
+        const backgroundDesignSelect = document.getElementById('backgroundDesign');
+        const dotStyleSelect = document.getElementById('dotStyle');
+        const cornerStyleSelect = document.getElementById('cornerStyle');
+        const colorBtns = document.querySelectorAll('.color-btn');
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const viewCartBtn = document.getElementById('viewCartBtn');
+        const completeOrderBtn = document.getElementById('completeOrderBtn');
+        const freeContinueBtn = document.getElementById('freeContinueBtn');
+        const addressForm = document.getElementById('addressForm');
+        
+        [presetDesignSelect, backgroundDesignSelect, dotStyleSelect, cornerStyleSelect].forEach(el => el.addEventListener('change', renderFinalQR));
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                colorBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderFinalQR();
+            });
+        });
+        document.getElementById('resetQR').addEventListener('click', () => {
+            presetDesignSelect.value = 'safeqr-logo';
+            backgroundDesignSelect.value = 'none';
+            dotStyleSelect.value = 'square';
+            cornerStyleSelect.value = 'square';
+            colorBtns.forEach(b => b.classList.remove('active'));
+            colorBtns[0].classList.add('active');
+            renderFinalQR();
+        });
+        addToCartBtn.addEventListener('click', addToCart);
+        viewCartBtn.addEventListener('click', openCart);
+        
+        freeContinueBtn.addEventListener('click', () => {
+            if (!pendingAddItem) return;
+            cart.items.push(pendingAddItem);
+            localStorage.setItem('safeqrCart', JSON.stringify(cart));
+            pendingAddItem = null;
+            document.getElementById('freeLimitModal').style.display = "none";
+            updateCartDisplay();
+            showInfoModal("Added to Cart", "The extra QR has been added with an additional charge.");
+        });
+
+        completeOrderBtn.addEventListener('click', () => {
+            if (cart.items.length === 0) {
+                showInfoModal("Empty Cart", "Your cart is empty. Please add items before completing the order.");
+                return;
+            }
+            document.getElementById('cartModal').style.display = "none";
+            document.getElementById('addressModal').style.display = "flex";
+        });
+
+        // ===== UPDATED PAYMENT AND ORDER LOGIC =====
+        addressForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const proceedBtn = document.getElementById('proceedToPaymentBtn');
+            proceedBtn.disabled = true;
+            proceedBtn.textContent = "Processing...";
+            
+            const name = document.getElementById('name').value;
+            const street = document.getElementById('street').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const zip = document.getElementById('zip').value;
+            const phone = document.getElementById('phone').value;
+            const alternatePhone = document.getElementById('alternatePhone').value;
+
+            const fullAddress = `${street}, ${city}, ${state} - ${zip}`;
+            const totalAmount = calculateTotalAmount();
+
+            if (totalAmount <= 0) {
+                showInfoModal("No Payment Due", "Your cart total is zero. Cannot proceed to payment.");
+                proceedBtn.disabled = false;
+                proceedBtn.textContent = "Proceed to Payment";
+                return;
+            }
+
+            try {
+                // Step 1: Create a Razorpay order from your backend
+                const createOrderResponse = await fetch(`${API_BASE_URL}/api/razorpay/create-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                    body: JSON.stringify({ amount: totalAmount })
+                });
+
+                if (!createOrderResponse.ok) throw new Error('Failed to create Razorpay payment order.');
+                const { order } = await createOrderResponse.json();
+                
+                let firstOrderId = null;
+                // Before payment, create all orders in our database with 'pending' payment status
+                const customItems = cart.items.filter(item => !item.auto);
+                for (const item of customItems) {
+                    const dbOrderResponse = await fetch(`${API_BASE_URL}/api/orders`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + localStorage.getItem("token") },
+                        body: JSON.stringify({
+                            username: name,
+                            date: new Date().toISOString().split('T')[0],
+                            img: item.imgData,
+                            preset: item.design,
+                            bg: item.background,
+                            color: item.color,
+                            paymentStatus: "pending",
+                            deliveryStatus: "Pending",
+                            deliveryAddress: fullAddress,
+                            phone: phone,
+                            alternatePhone: alternatePhone
+                        }),
+                    });
+                     if (!dbOrderResponse.ok) throw new Error(`Failed to save order for ${item.itemName}.`);
+                     const dbOrderResult = await dbOrderResponse.json();
+                     if (!firstOrderId) firstOrderId = dbOrderResult.orderId;
+                }
+
+
+                // Step 2: Open Razorpay Checkout
+                const options = {
+                    key: 'rzp_live_RNWWRZCK3PlKUu', // IMPORTANT: Yahan apni Razorpay Key ID daalein
+                    amount: order.amount,
+                    currency: "INR",
+                    name: "SafeQR",
+                    description: "Custom QR Code Order",
+                    order_id: order.id,
+                    handler: async function (response) {
+                        // This function runs after successful payment
+                        document.getElementById('addressModal').style.display = 'none';
+                        const orderButton = document.getElementById('completeOrderBtn');
+                        orderButton.classList.add('animate');
+                        
+                        try {
+                             const verifyResponse = await fetch(`${API_BASE_URL}/api/razorpay/verify-payment`, {
+                                 method: 'POST',
+                                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                                 body: JSON.stringify({
+                                     razorpay_order_id: response.razorpay_order_id,
+                                     razorpay_payment_id: response.razorpay_payment_id,
+                                     razorpay_signature: response.razorpay_signature,
+                                     orderId: firstOrderId // Verify using one of our DB order IDs
+                                 })
+                             });
+
+                             if (!verifyResponse.ok) throw new Error('Payment verification failed.');
+                            
+                            // Animation is 10s long
+                            setTimeout(() => {
+                                orderButton.classList.remove('animate');
+                                showInfoModal("Order Placed!", "Payment successful! Your order will be delivered soon. Redirecting to homepage...");
+                                
+                                // NEW: Redirect to index.html after another 10 seconds
+                                setTimeout(() => {
+                                    window.location.href = 'index.html';
+                                }, 10000);
+
+                            }, 10000);
+
+                        } catch(err) {
+                             console.error("Failed to process order after payment:", err);
+                             orderButton.classList.remove('animate');
+                             showInfoModal("Order Failed", "Payment was successful, but there was a problem saving order details. Please contact support with your Payment ID.");
+                        }
+                    },
+                    prefill: {
+                        name: name,
+                        contact: phone
+                    },
+                    theme: {
+                        color: "#6366f1"
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            proceedBtn.disabled = false;
+                            proceedBtn.textContent = "Proceed to Payment";
+                        }
+                    }
+                };
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){
+                    showInfoModal("Payment Failed", "Payment could not be processed. Please try again. Reason: " + response.error.description);
+                    proceedBtn.disabled = false;
+                    proceedBtn.textContent = "Proceed to Payment";
+                });
+                rzp.open();
+
+            } catch (error) {
+                console.error("Payment process failed:", error);
+                showInfoModal("Error", "Could not initiate the payment process. Please try again later.");
+                proceedBtn.disabled = false;
+                proceedBtn.textContent = "Proceed to Payment";
+            }
+        });
+
+        renderFinalQR();
+    });
+</script>
+</body>
+</html>
+

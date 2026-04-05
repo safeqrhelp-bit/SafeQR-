@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeQR - Information Form</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(to bottom right, #0f172a, #1e293b); color: #e2e8f0; }
+    header { text-align:center; padding:1.5rem; background:rgba(15,23,42,.8); position:sticky; top:0; z-index:50; }
+    h1 { color:#6366f1; font-size:1.8rem; font-weight:700; }
+    
+    /* Person Tabs */
+    .person-tab { background:#334155; color:#94a3b8; padding:.7rem 1.2rem; border-radius:.75rem; cursor:pointer; font-weight:600; transition:.3s; border: 2px solid transparent; }
+    .person-tab.active { background:#6366f1; color:white; border-color: #a78bfa; }
+    
+    /* Step Tabs inside each form */
+    .step-tab { background:#334155; color:#94a3b8; padding:.6rem 1rem; border-radius:.75rem; cursor:pointer; font-weight:600; transition:.3s; }
+    .step-tab.active { background:#6366f1; color:white; }
+    
+    .person-form-wrapper { display: none; }
+    .person-form-wrapper.active { display: block; animation:fadeIn .5s ease-out; }
+
+    .form-section { display:none; }
+    .form-section.active { display:block; }
+    @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+
+    input, select, textarea {
+        width: 100%; background: #334155; border: 1px solid #475569; border-radius: .5rem; padding: 0.8rem; color: #e2e8f0; font-size: 1rem; box-sizing: border-box;
+    }
+    input[name], input[type=file] { padding: 1.05rem; font-size: 1.125rem; min-height: 3.1rem; border-radius: .75rem; }
+    .file-input{display:flex; align-items:center; gap:.5rem;}
+    .file-name{font-size: .95rem; color: #c0c0c0; margin-left: .5rem; font-weight: 500;}
+    
+    .nextBtn, .submitBtn, .finalSubmitBtn { padding: 1rem 2rem; border-radius: .75rem; font-weight: 600; font-size: 1.125rem; transition: .3s; background: #6366f1; color: white; cursor:pointer; }
+    .prevBtn { padding: 1rem 2rem; border-radius: .75rem; font-weight: 600; font-size: 1.125rem; transition: .3s; background: #475569; color: white; cursor:pointer; }
+ /* New Progress Bar Animation Styles */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(5px);
+  display: none; /* Hidden by default */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.3s;
+}
+.loading-overlay.show {
+  display: flex; /* Show the overlay */
+}
+.progress-container {
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  color: white;
+}
+.progress-text {
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.timer-text {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+}
+.progress-bar-background {
+  background: #334155;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+}
+.progress-bar-foreground {
+  height: 18px;
+  width: 0%; /* Start at 0% */
+  background: #6366f1;
+  border-radius: 8px;
+  transition: width 0.2s ease-in-out;
+}
+ </style>
+</head>
+<body>
+<header><h1>SafeQR - Emergency Information Form</h1></header>
+<main class="max-w-6xl mx-auto p-8 bg-gray-800 rounded-xl mt-6">
+  
+  <div id="personTabsContainer" class="flex flex-wrap gap-3 mb-8 border-b-2 border-gray-700 pb-4"></div>
+
+  <div id="formsContainer"></div>
+
+  <div id="qrContainer" class="mt-6 flex flex-col items-center"></div>
+</main>
+
+
+<template id="personFormTemplate">
+  <div class="person-form-wrapper" data-person-index="{{personIndex}}">
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button class="step-tab" data-step="0">Personal</button>
+      <button class="step-tab" data-step="1">Medical</button>
+      <button class="step-tab" data-step="2">Traffic</button>
+      <button class="step-tab" data-step="3">Institution</button>
+      <button class="step-tab" data-step="4">Employment</button>
+      <button class="step-tab" data-step="5">Bank</button>
+      <button class="step-tab" data-step="6">Social Media</button>
+    </div>
+
+    <form class="safeqr-person-form space-y-8">
+      <section class="form-section active">
+        <h2 class="text-lg text-indigo-400 mb-2">Personal Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" name="fullName" placeholder="Full Name">
+          <input type="date" name="dob" placeholder="Date of Birth">
+          <input type="text" name="gender" placeholder="Gender">
+          <input type="text" name="nationality" placeholder="Nationality">
+          <input type="text" class="permanentAddress" name="permanentAddress" placeholder="Permanent Address">
+          <input type="text" class="temporaryAddress" name="temporaryAddress" placeholder="Temporary Address">
+          <div class="col-span-2 flex items-center gap-2 mt-1">
+            <input type="checkbox" class="sameAddress h-5 w-5 rounded border-gray-600 text-indigo-500 focus:ring-indigo-400 bg-gray-700">
+            <label class="text-sm text-gray-300">Temporary address same as Permanent</label>
+          </div>
+          <input type="email" name="email" placeholder="Email">
+          <input type="text" name="phone" placeholder="Phone Number">
+          <input type="text" name="passportNumber" placeholder="Passport Number">
+          <input type="text" name="aadharNumber" placeholder="Aadhar Number">
+          <input type="text" name="panNumber" placeholder="PAN Number">
+          <input type="text" name="emergencyContactName" placeholder="Emergency Contact Name">
+          <input type="text" name="emergencyContactPhone" placeholder="Emergency Contact Phone">
+        </div>
+        <p class="mt-3 text-sm text-gray-400">Uploads</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="file-input"><input type="file" name="upload_aadhar"><span class="file-name">Upload Aadhar</span></div>
+          <div class="file-input"><input type="file" name="upload_pan"><span class="file-name">Upload PAN</span></div>
+          <div class="file-input"><input type="file" name="upload_passport"><span class="file-name">Upload Passport</span></div>
+          <div class="file-input"><input type="file" name="upload_voter"><span class="file-name">Upload Voter ID</span></div>
+          <div class="file-input"><input type="file" name="upload_birth"><span class="file-name">Upload Birth Certificate</span></div>
+          <div class="file-input"><input type="file" name="upload_passport_photo" accept="image/*"><span class="file-name">Upload Passport Photo</span></div>
+        </div>
+        <div class="flex justify-end mt-4"><button type="button" class="nextBtn">Next</button></div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="text-lg text-indigo-400 mb-2">Medical Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" name="bloodType" placeholder="Blood Group">
+          <input type="text" name="allergies" placeholder="Allergies">
+          <input type="text" name="medications" placeholder="Medication">
+          <input type="text" name="medicalConditions" placeholder="Medical Condition">
+          <input type="text" name="physicianName" placeholder="Physician Name">
+          <input type="text" name="physicianContact" placeholder="Physician Contact">
+          <input type="text" name="specialty" placeholder="Specialty">
+          <input type="text" name="insuranceProvider" placeholder="Insurance Provider">
+          <input type="text" name="insurancePolicyNumber" placeholder="Insurance Policy Number">
+        </div>
+        <p class="mt-3 text-sm text-gray-400">Uploads</p>
+        <div class="file-input"><input type="file" name="upload_medicalHistory"><span class="file-name">Upload Medical History</span></div>
+        <div class="flex justify-between mt-4"><button type="button" class="prevBtn">Previous</button><button type="button" class="nextBtn">Next</button></div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="text-lg text-indigo-400 mb-2">Traffic Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" name="licenseNumber" placeholder="Licence Number">
+          <input type="date" name="licenseExpiry" placeholder="Licence Expiry">
+          <input type="number" class="numberOfVehicles" name="numberOfVehicles" placeholder="Number of Vehicles">
+        </div>
+        <div class="vehiclesContainer"></div>
+        <div class="flex gap-2 mt-2">
+          <button type="button" class="addVehicleBtn prevBtn">Add Vehicle</button>
+          <button type="button" class="removeVehicleBtn prevBtn">Remove Last</button>
+        </div>
+        <p class="mt-3 text-sm text-gray-400">Uploads</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="file-input"><input type="file" name="upload_rc"><span class="file-name">Upload RC</span></div>
+          <div class="file-input"><input type="file" name="upload_licence"><span class="file-name">Upload Licence</span></div>
+          <div class="file-input"><input type="file" name="upload_insurance"><span class="file-name">Upload Insurance</span></div>
+          <div class="file-input"><input type="file" name="upload_puc"><span class="file-name">Upload PUC</span></div>
+        </div>
+        <div class="flex justify-between mt-4"><button type="button" class="prevBtn">Previous</button><button type="button" class="nextBtn">Next</button></div>
+      </section>
+      
+      <section class="form-section">
+        <h2 class="text-lg text-indigo-400 mb-2">Institution Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" name="institutionName" placeholder="Institution Name">
+          <input type="text" name="institutionType" placeholder="Institution Type">
+          <input type="text" name="class" placeholder="Class/Department">
+          <input type="text" name="section" placeholder="Section">
+          <input type="text" name="rollNumber" placeholder="Roll Number">
+          <input type="text" name="institutionRegNumber" placeholder="Registration Number">
+          <input type="url" name="institutionWebsite" placeholder="Institution Website">
+        </div>
+        <p class="mt-3 text-sm text-gray-400">Marksheets</p>
+        <div class="marksheetContainer space-y-3">
+          <div class="marksheet-entry grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="text" name="marksheet_name_1" placeholder="Marks Sheet Name">
+            <div class="file-input">
+              <input type="file" name="upload_marksheet_1"><span class="file-name">Upload Marks Sheet</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="addMarksheetBtn mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">+ Add Marks Sheet</button>
+        <p class="mt-3 text-sm text-gray-400">Upload ID Card</p>
+        <div class="file-input"><input type="file" name="upload_studentId"><span class="file-name">Upload Student ID Card</span></div>
+        <div class="flex justify-between mt-4"><button type="button" class="prevBtn">Previous</button><button type="button" class="nextBtn">Next</button></div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="text-lg text-indigo-400 mb-2">Employment Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" name="employeeId" placeholder="Employee ID Number">
+          <input type="text" name="uanPfNumber" placeholder="UAN/PF Number">
+        </div>
+        <p class="mt-3 text-sm text-gray-400">Uploads</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="file-input"><input type="file" name="upload_employeeId"><span class="file-name">Upload Employee ID</span></div>
+          <div class="file-input"><input type="file" name="upload_resume"><span class="file-name">Upload Resume</span></div>
+          <div class="file-input"><input type="file" name="upload_healthInsurance"><span class="file-name">Upload Health Insurance</span></div>
+          <div class="file-input"><input type="file" name="upload_training"><span class="file-name">Upload Training Certificate</span></div>
+        </div>
+        <div class="flex justify-between mt-4"><button type="button" class="prevBtn">Previous</button><button type="button" class="nextBtn">Next</button></div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="text-lg text-indigo-400 mb-2">Bank Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" name="bankName" placeholder="Bank Name">
+          <input type="text" name="bankIfsc" placeholder="Bank IFSC Code">
+          <input type="text" name="bankAccountNumber" placeholder="Account Number">
+          <input type="text" name="upiId" placeholder="UPI ID">
+        </div>
+        <p class="mt-3 text-sm text-gray-400">Uploads</p>
+        <div class="file-input"><input type="file" name="upload_bankPassbook"><span class="file-name">Upload Bank Passbook</span></div>
+        <div class="flex justify-between mt-4"><button type="button" class="prevBtn">Previous</button><button type="button" class="nextBtn">Next</button></div>
+      </section>
+
+      <section class="form-section">
+        <h2 class="text-lg text-indigo-400 mb-2">Social Media</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" name="instagram" placeholder="Instagram">
+          <input type="text" name="facebook" placeholder="Facebook">
+          <input type="text" name="twitter" placeholder="Twitter/X">
+          <input type="text" name="linkedin" placeholder="LinkedIn">
+        </div>
+        <div class="flex justify-between mt-4">
+            <button type="button" class="prevBtn">Previous</button>
+            <button type="button" class="finalSubmitBtn">Submit All & Generate QR</button>
+        </div>
+      </section>
+    </form>
+  </div>
+</template>
+
+<template id="vehicleTemplate">
+  <div class="subcard mb-4 p-3 border border-gray-600 rounded-lg">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <input type="text" name="vehicle_type" placeholder="Type of Vehicle">
+      <input type="text" name="vehicle_company" placeholder="Vehicle Company">
+      <input type="text" name="vehicle_model" placeholder="Vehicle Model">
+      <input type="date" name="vehicle_regn_date" placeholder="Vehicle Regn Date">
+      <input type="text" name="engine_number" placeholder="Engine Number">
+      <input type="text" name="chassis_number" placeholder="Chassis Number">
+      <input type="text" name="registration_number" placeholder="Registration Number">
+      <input type="text" name="traffic_insurance_company" placeholder="Insurance Company">
+      <input type="text" name="traffic_insurance_policy" placeholder="Insurance Policy Number">
+    </div>
+  </div>
+</template>
+
+<script>
+const API_BASE_URL = "https://safeqr.life";
+
+function populateAllForms(allPersonsData) { if (!allPersonsData || allPersonsData.length === 0) return; allPersonsData.forEach(personData => { const personIndex = personData.personIndex; const formWrapper = document.querySelector(`.person-form-wrapper[data-person-index="${personIndex}"]`); if (!formWrapper) return; const textData = personData.textData; const files = personData.files; Object.keys(textData).forEach(key => { const field = formWrapper.querySelector(`[name="${key}"]`); if (field) { if (field.type === 'checkbox') field.checked = !!textData[key]; else field.value = textData[key]; } }); files.forEach(fileObj => { const field = formWrapper.querySelector(`[name="${fileObj.originalName}"]`); if (field) { const fileNameSpan = field.parentElement.querySelector(".file-name"); if (fileNameSpan) { fileNameSpan.textContent = `Uploaded: ${fileObj.name}`; fileNameSpan.style.color = '#4ade80'; } } }); const numVehicles = parseInt(textData[`person_${personIndex}_numberOfVehicles`] || '0'); const numberOfVehiclesInput = formWrapper.querySelector(".numberOfVehicles"); if (numberOfVehiclesInput) { numberOfVehiclesInput.value = numVehicles; numberOfVehiclesInput.dispatchEvent(new Event('change')); setTimeout(() => { for (let i = 0; i < numVehicles; i++) { const vehicleFields = ['vehicle_type', 'vehicle_company', 'vehicle_model', 'vehicle_regn_date', 'engine_number', 'chassis_number', 'registration_number', 'traffic_insurance_company', 'traffic_insurance_policy']; vehicleFields.forEach(fieldName => { const inputName = `person_${personIndex}_${fieldName}_${i}`; const inputElement = formWrapper.querySelector(`input[name="${inputName}"]`); if (inputElement) inputElement.value = textData[inputName] || ''; }); } }, 100); } const marksheetContainer = formWrapper.querySelector(".marksheetContainer"); const addMarksheetBtn = formWrapper.querySelector(".addMarksheetBtn"); if (marksheetContainer && addMarksheetBtn) { let marksheetCount = 0; Object.keys(textData).forEach(key => { if (key.startsWith(`person_${personIndex}_marksheet_name_`)) marksheetCount++; }); for (let i = 1; i < marksheetCount; i++) addMarksheetBtn.click(); setTimeout(() => { for (let i = 1; i <= marksheetCount; i++) { const inputName = `person_${personIndex}_marksheet_name_${i}`; const inputElement = formWrapper.querySelector(`input[name="${inputName}"]`); if(inputElement) inputElement.value = textData[inputName] || ''; } }, 100); } }); }
+async function loadUserData() { const token = localStorage.getItem("token"); if (!token) { window.location.href = "login.html"; return; } try { const res = await fetch(`${API_BASE_URL}/api/user/profile`, { headers: { "Authorization": `Bearer ${token}` } }); if (res.ok) { const { data } = await res.json(); populateAllForms(data); } else if (res.status !== 404) { throw new Error(`Server responded with status: ${res.status}`); } } catch (err) { console.error("Error fetching user data:", err); alert("Could not load your saved data. Please refresh the page."); } }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const personTabsContainer = document.getElementById('personTabsContainer');
+    const formsContainer = document.getElementById('formsContainer');
+    const personFormTemplate = document.getElementById('personFormTemplate');
+    const urlParams = new URLSearchParams(window.location.search);
+    let plan = localStorage.getItem('selectedPlan') || urlParams.get('plan')?.toLowerCase() || 'basic';
+    const planToPersonCount = { basic: 1, pro: 2, family: 4 };
+    const personCount = planToPersonCount[plan] || 1;
+    for (let i = 1; i <= personCount; i++) {
+        const personTab = document.createElement('button');
+        personTab.className = 'person-tab';
+        personTab.textContent = `Person ${i}`;
+        personTab.dataset.personIndex = i;
+        personTabsContainer.appendChild(personTab);
+        const templateContent = personFormTemplate.content.cloneNode(true);
+        const formWrapper = templateContent.querySelector('.person-form-wrapper');
+        formWrapper.dataset.personIndex = i;
+        formWrapper.querySelectorAll('[name]').forEach(el => { el.name = `person_${i}_${el.name}`; });
+        formsContainer.appendChild(templateContent);
+    }
+    document.querySelectorAll('.person-form-wrapper').forEach(wrapper => initializeFormLogic(wrapper));
+    personTabsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('person-tab')) {
+            const targetIndex = e.target.dataset.personIndex;
+            personTabsContainer.querySelectorAll('.person-tab').forEach(tab => tab.classList.toggle('active', tab.dataset.personIndex === targetIndex));
+            document.querySelectorAll('.person-form-wrapper').forEach(form => form.classList.toggle('active', form.dataset.personIndex === targetIndex));
+        }
+    });
+    if (personCount > 0) {
+        personTabsContainer.querySelector('.person-tab').classList.add('active');
+        document.querySelector('.person-form-wrapper').classList.add('active');
+    }
+    loadUserData();
+});
+
+function initializeFormLogic(formWrapper) {
+    let currentStep = 0;
+    const steps = formWrapper.querySelectorAll(".form-section");
+    const tabs = formWrapper.querySelectorAll(".step-tab");
+    function showStep(stepIndex) { steps.forEach((s, idx) => s.classList.toggle("active", idx === stepIndex)); tabs.forEach((t, idx) => t.classList.toggle("active", idx === stepIndex)); currentStep = stepIndex; window.scrollTo({ top: 0, behavior: "smooth" }); }
+    formWrapper.querySelectorAll(".nextBtn").forEach(b => b.addEventListener("click", () => showStep(currentStep < steps.length - 1 ? currentStep + 1 : currentStep)));
+    formWrapper.querySelectorAll(".prevBtn").forEach(b => b.addEventListener("click", () => showStep(currentStep > 0 ? currentStep - 1 : currentStep)));
+    tabs.forEach((t, i) => t.addEventListener("click", () => showStep(i)));
+    showStep(0);
+
+    formWrapper.querySelectorAll('input[type=file]').forEach(inp => {
+        const fileNameSpan = inp.parentElement.querySelector(".file-name");
+        if(fileNameSpan){
+            const defaultText = fileNameSpan.textContent;
+            inp.addEventListener("change", () => { fileNameSpan.textContent = inp.files.length ? inp.files[0].name : defaultText; });
+        }
+    });
+
+    const sameAddressCheckbox = formWrapper.querySelector(".sameAddress");
+    const permanentAddressInput = formWrapper.querySelector(".permanentAddress");
+    const temporaryAddressInput = formWrapper.querySelector(".temporaryAddress");
+    if(sameAddressCheckbox && permanentAddressInput && temporaryAddressInput) {
+        sameAddressCheckbox.addEventListener("change", function() { temporaryAddressInput.value = this.checked ? permanentAddressInput.value : ""; temporaryAddressInput.readOnly = this.checked; });
+        permanentAddressInput.addEventListener("input", () => { if (sameAddressCheckbox.checked) temporaryAddressInput.value = permanentAddressInput.value; });
+    }
+    const vehiclesContainer = formWrapper.querySelector(".vehiclesContainer");
+    const numberOfVehiclesInput = formWrapper.querySelector(".numberOfVehicles");
+    if (vehiclesContainer && numberOfVehiclesInput) {
+        const renderVehicle = (index) => { const vehicleTemplate = document.getElementById("vehicleTemplate").content.cloneNode(true); vehicleTemplate.querySelectorAll('[name]').forEach(el => { el.name = `person_${formWrapper.dataset.personIndex}_${el.name}_${index}`; }); vehiclesContainer.appendChild(vehicleTemplate); };
+        const setVehicleCount = (n) => { vehiclesContainer.innerHTML = ''; for (let i = 0; i < n; i++) renderVehicle(i); };
+        numberOfVehiclesInput.addEventListener("change", e => setVehicleCount(parseInt(e.target.value) || 0));
+        formWrapper.querySelector(".addVehicleBtn").addEventListener("click", () => { const newCount = (parseInt(numberOfVehiclesInput.value) || 0) + 1; numberOfVehiclesInput.value = newCount; setVehicleCount(newCount); });
+        formWrapper.querySelector(".removeVehicleBtn").addEventListener("click", () => { const currentCount = parseInt(numberOfVehiclesInput.value) || 0; if (currentCount > 0) { const newCount = currentCount - 1; numberOfVehiclesInput.value = newCount; setVehicleCount(newCount); } });
+    }
+    const marksheetContainer = formWrapper.querySelector(".marksheetContainer");
+    const addMarksheetBtn = formWrapper.querySelector(".addMarksheetBtn");
+    if(marksheetContainer && addMarksheetBtn){
+        let marksheetCount = 0;
+        addMarksheetBtn.addEventListener("click", () => {
+            marksheetCount++;
+            const entry = document.createElement("div");
+            entry.className = "marksheet-entry grid grid-cols-1 md:grid-cols-2 gap-3 mt-3";
+            entry.innerHTML = `
+                <input type="text" name="person_${formWrapper.dataset.personIndex}_marksheet_name_${marksheetCount}" placeholder="Marks Sheet Name">
+                <div class="file-input">
+                    <input type="file" name="person_${formWrapper.dataset.personIndex}_upload_marksheet_${marksheetCount}">
+                    <span class="file-name">Upload Marks Sheet</span>
+                </div>
+            `;
+            marksheetContainer.appendChild(entry);
+        });
+    }
+}
+
+document.addEventListener("click", async (event) => {
+    if (event.target.classList.contains('finalSubmitBtn')) {
+        const loader = document.getElementById('loadingOverlay');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+        const timerValue = document.getElementById('timerValue');
+
+        event.target.disabled = true;
+        loader.classList.add('show');
+
+        // --- Progress Bar Simulation Logic ---
+        let progress = 0;
+        const startTime = Date.now();
+        let progressInterval;
+
+        const updateProgress = () => {
+            const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+            timerValue.textContent = `${elapsedTime}s`;
+            
+            // Animate progress to 95% and then hold
+            if (progress < 95) {
+                progress += (95 - progress) * 0.1;
+            }
+            
+            progressBar.style.width = `${progress}%`;
+            progressPercent.textContent = `${Math.floor(progress)}%`;
+        };
+        progressInterval = setInterval(updateProgress, 150);
+        // --- End of Simulation Logic ---
+
+        const finalFormData = new FormData();
+        const forms = document.querySelectorAll('.safeqr-person-form');
+        forms.forEach(form => {
+            const formData = new FormData(form);
+            for (const [key, value] of formData.entries()) {
+                if ((value instanceof File && value.name) || (typeof value === 'string' && value.trim() !== '')) {
+                     finalFormData.append(key, value);
+                }
+            }
+        });
+        const token = localStorage.getItem("token");
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/user/profile`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: finalFormData
+            });
+            const result = await res.json();
+            const qrContainer = document.getElementById("qrContainer");
+            if (result.success) {
+                qrContainer.innerHTML = `
+                    <div class="bg-green-600 text-white p-4 rounded-lg shadow-md mb-4">
+                        ✅ Information saved successfully!
+                    </div>
+                    <button id="viewDetailsBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium shadow">
+                        View Your Profile & QR Codes
+                    </button>
+                `;
+                document.getElementById("viewDetailsBtn").addEventListener("click", () => {
+                    window.location.href = "view.html";
+                });
+            } else {
+                throw new Error(result.error || "Failed to save data.");
+            }
+        } catch (err) {
+            console.error("Submit error:", err);
+            document.getElementById("qrContainer").innerHTML = `<div class="bg-red-600 text-white p-4 rounded-lg">Error: ${err.message}</div>`;
+        } finally {
+            // --- Finalize Progress Bar and Hide ---
+            clearInterval(progressInterval);
+            
+            progressBar.style.width = '100%';
+            progressPercent.textContent = '100%';
+            
+            setTimeout(() => {
+                loader.classList.remove('show');
+                event.target.disabled = false;
+                event.target.textContent = "Submit All & Generate QR";
+                
+                // Reset for next time
+                setTimeout(() => {
+                    progressBar.style.width = '0%';
+                    progressPercent.textContent = '0%';
+                    timerValue.textContent = '0.0s';
+                }, 500);
+
+            }, 500);
+        }
+    }
+});
+</script>
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="progress-container">
+    <div class="progress-text">Uploading Files... <span id="progressPercent">0%</span></div>
+    <div class="progress-bar-background">
+      <div id="progressBar" class="progress-bar-foreground"></div>
+    </div>
+    <div class="timer-text">Elapsed time: <span id="timerValue">0.0s</span></div>
+  </div>
+</div>
+</body>
+</html>

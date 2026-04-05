@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Management - SafeQR Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <div id="auth-container" class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <h2 id="auth-title" class="text-2xl font-bold mb-6 text-center">Admin Login</h2>
+      <form id="auth-form" class="space-y-4">
+        <input type="email" id="email" placeholder="Email"
+          class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-300" required>
+        <input type="password" id="password" placeholder="Password"
+          class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-300" required>
+        <button type="submit"
+          class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Login</button>
+      </form>
+       </div>
+  </div>
+
+  <div id="app-container" class="flex min-h-screen hidden">
+    <div class="w-64 bg-blue-800 text-white">
+      <div class="p-4 border-b border-blue-700">
+        <h1 class="text-xl font-bold">SafeQR Admin</h1>
+        <p class="text-sm text-blue-200">Order Management</p>
+      </div>
+      <nav class="p-4">
+       <ul>
+          <li class="mb-2">
+            <a href="#" onclick="renderOrders()" class="flex items-center p-2 hover:bg-blue-700 rounded-lg">
+              <i class="fas fa-shopping-cart mr-3"></i>
+              <span>Orders</span>
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="#" onclick="renderAnalysis()" class="flex items-center p-2 hover:bg-blue-700 rounded-lg">
+              <i class="fas fa-chart-bar mr-3"></i>
+              <span>Analytics</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" onclick="logout()" class="flex items-center p-2 hover:bg-blue-700 rounded-lg">
+              <i class="fas fa-sign-out-alt mr-3"></i>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="flex-1 p-6 bg-gray-50">
+      <div id="mainContent">
+        <h2 class="text-2xl font-bold mb-4">Orders</h2>
+        <p class="text-gray-600">Welcome! After login, orders will be shown here.</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+<script>
+    // --- CONFIGURATION & STATE ---
+    const API_BASE_URL = "https://safeqr.life"; // Port 5000 add kiya gaya hai
+    let orders = [];
+    let lastOrderIds = [];
+
+    // --- AUTHENTICATION ---
+    document.getElementById("auth-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await response.json();
+
+        if (response.ok && data.token) {
+          localStorage.setItem("adminToken", data.token);
+          document.getElementById("auth-container").classList.add("hidden");
+          document.getElementById("app-container").classList.remove("hidden");
+          await fetchOrders();
+        } else {
+          alert("Login Failed: " + (data.error || "Invalid credentials"));
+        }
+      } catch (err) {
+        alert("Server connection error.");
+        console.error("Login failed:", err);
+      }
+    });
+
+    function logout() {
+        localStorage.removeItem("adminToken");
+        window.location.reload();
+    }
+
+    // --- DATA FETCHING ---
+    async function fetchOrders() {
+      const token = localStorage.getItem("adminToken");
+      if (!token) { logout(); return; }
+      
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/orders`, {
+          headers: { "Authorization": "Bearer " + token }
+        });
+        
+        if (res.status === 401 || res.status === 403) { logout(); return; }
+        if (!res.ok) throw new Error('Server returned an error');
+
+        const data = await res.json();
+        
+        const newOrderIds = data.map(o => o.orderId);
+        if (lastOrderIds.length > 0 && newOrderIds.some(id => !lastOrderIds.includes(id))) {
+          // playNotification(); // Agar notification sound hai
+        }
+        lastOrderIds = newOrderIds;
+        orders = data;
+
+        renderOrders();
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+        document.getElementById("mainContent").innerHTML = `<p class="text-red-500">Failed to load orders.</p>`;
+      }
+    }
+
+    // --- PDF GENERATION ---
+    // NEW: PDF generate karne ke liye function
+    async function generateUserPdf(username) {
+        const { jsPDF } = window.jspdf;
+        const userOrders = orders.filter(o => o.username === username);
+        if (userOrders.length === 0) {
+            alert("No QR codes found for this user.");
+            return;
+        }
+
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const qrSize = 60; // mm mein size
+        const margin = 10; // mm mein margin
+        const qrsPerRow = 3;
+        const qrsPerCol = 4;
+        const horizontalSpacing = (doc.internal.pageSize.getWidth() - (qrsPerRow * qrSize)) / (qrsPerRow + 1);
+        const verticalSpacing = 15;
+
+        let qrCounter = 0;
+        let currentPage = 1;
+
+        for (const order of userOrders) {
+            const rowIndex = Math.floor(qrCounter / qrsPerRow) % qrsPerCol;
+            const colIndex = qrCounter % qrsPerRow;
+
+            if (qrCounter > 0 && qrCounter % (qrsPerRow * qrsPerCol) === 0) {
+                doc.addPage();
+                currentPage++;
+                qrCounter = 0;
+            }
+            
+            const x = horizontalSpacing + colIndex * (qrSize + horizontalSpacing);
+            const y = verticalSpacing + rowIndex * (qrSize + verticalSpacing);
+            
+            // Image ko Base64 se add karna
+            doc.addImage(order.img, 'PNG', x, y, qrSize, qrSize);
+            
+            qrCounter++;
+        }
+
+        doc.save(`${username}_QRs.pdf`);
+    }
+
+
+    // --- RENDERING ---
+    // MODIFIED: Poora renderOrders function naye design ke hisaab se
+    function renderOrders() {
+      const container = document.getElementById("mainContent");
+      container.innerHTML = "<h2 class='text-2xl font-bold mb-4'>Customer Orders</h2>";
+      if (orders.length === 0) {
+        container.innerHTML += "<p class='text-gray-600'>No orders found.</p>";
+        return;
+      }
+
+      const grouped = orders.reduce((groups, order) => {
+        const user = order.username || 'Unknown User';
+        if (!groups[user]) groups[user] = [];
+        groups[user].push(order);
+        return groups;
+      }, {});
+      
+      Object.keys(grouped).forEach(user => {
+        const userOrders = grouped[user];
+        const firstOrder = userOrders[0]; // Pehle order se common details le rahe hain
+
+        const section = document.createElement("div");
+        section.className = "bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-8";
+        
+        section.innerHTML = `
+            <div class="flex justify-between items-start mb-4 border-b pb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-blue-800">${user}</h3>
+                    <p class="text-sm text-gray-600">Plan: <span class="font-semibold text-gray-800">${firstOrder.plan || 'N/A'}</span></p>
+                </div>
+                <button onclick="generateUserPdf('${user}')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center">
+                    <i class="fas fa-file-pdf mr-2"></i> Generate PDF
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div>
+                    <h4 class="text-md font-semibold text-gray-700 mb-2">Delivery Details</h4>
+                    <p class="text-sm"><strong class="font-medium">Address:</strong> ${firstOrder.deliveryAddress || 'Not Provided'}</p>
+                    <p class="text-sm"><strong class="font-medium">Phone:</strong> ${firstOrder.phone || 'Not Provided'}</p>
+                    <p class="text-sm"><strong class="font-medium">Alternate Phone:</strong> ${firstOrder.alternatePhone || 'Not Provided'}</p>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-md font-semibold text-gray-700 mb-3 mt-6">Ordered QR Codes (${userOrders.length})</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    ${userOrders.map(order => `
+                        <div class="text-center border p-2 rounded-lg bg-gray-50">
+                            <img src="${order.img}" class="mx-auto rounded-md shadow-sm w-full h-auto"/>
+                            <p class="text-xs text-gray-500 mt-1 truncate" title="Order ID: ${order.orderId}">ID: ${order.orderId}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        container.appendChild(section);
+      });
+    }
+
+    function renderAnalysis() {
+        const total = orders.length;
+        const paid = orders.filter(o => o.paymentStatus === "Completed").length;
+        const delivered = orders.filter(o => o.deliveryStatus === "Delivered").length;
+        const container = document.getElementById("mainContent");
+        container.innerHTML = `
+            <h2 class="text-2xl font-bold mb-6">Order Analytics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md text-center"><h3 class="text-lg font-bold text-gray-700">Total Orders</h3><p class="text-3xl mt-2 font-bold">${total}</p></div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center"><h3 class="text-lg font-bold text-gray-700">Payments Completed</h3><p class="text-3xl mt-2 font-bold">${paid}</p></div>
+                <div class="bg-white p-6 rounded-lg shadow-md text-center"><h3 class="text-lg font-bold text-gray-700">Orders Delivered</h3><p class="text-3xl mt-2 font-bold">${delivered}</p></div>
+            </div>`;
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("adminToken")) {
+            document.getElementById("auth-container").classList.add("hidden");
+            document.getElementById("app-container").classList.remove("hidden");
+            fetchOrders();
+            setInterval(fetchOrders, 15000); // Auto-refresh every 15 seconds
+        }
+    });
+</script>
+
+</html>

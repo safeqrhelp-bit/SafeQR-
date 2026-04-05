@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SafeQR - View Information</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+body { font-family:'Inter',sans-serif; background:linear-gradient(to bottom right,#0f172a,#1e293b,#0f172a); color:#e2e8f0; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding-bottom:4rem; overflow-x:hidden; }
+header { background: rgba(15,23,42,0.8); backdrop-filter: blur(10px); width:100%; padding:2rem 0; box-shadow:0 4px 20px rgba(0,0,0,0.3); position:sticky; top:0; z-index:100; text-align:center; }
+h1 { color:#6366f1; text-shadow:0 0 15px rgba(99,102,241,0.6); letter-spacing:0.05em; }
+main { max-width:1000px; width:100%; padding:2rem; margin-top:2rem; background:#1f2937; border-radius:1.5rem; box-shadow:0 10px 30px rgba(0,0,0,0.4),0 0 0 1px rgba(99,102,241,0.2); }
+.person-tab { background:#334155; color:#94a3b8; padding:.7rem 1.2rem; border-radius:.75rem; cursor:pointer; font-weight:600; transition:.3s; border: 2px solid transparent; }
+.person-tab.active { background:#6366f1; color:white; border-color: #a78bfa; }
+.step-tab { background:#334155; color:#94a3b8; border:1px solid #475569; transition:all 0.3s ease; flex-grow:1; text-align:center; padding:0.75rem 1rem; border-radius:0.75rem; font-weight:600; letter-spacing:0.025em; cursor:pointer; }
+.step-tab:hover { background-color:#475569; color:#cbd5e1; border-color:#6366f1; transform:translateY(-2px); box-shadow:0 6px 15px rgba(0,0,0,0.3); }
+.step-tab.active { background-color:#6366f1; color:white !important; border-color:#6366f1; box-shadow:0 6px 20px rgba(99,102,241,0.4); transform:translateY(-2px); }
+.view-section { display:none; animation:fadeIn 0.6s ease-out; }
+.view-section.active { display:block; }
+@keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+input[readonly], select[readonly], textarea[readonly] { background:#334155; border:1px solid #475569; color:#e2e8f0; padding:0.75rem 1rem; border-radius:0.75rem; width:100%; opacity:0.7; cursor:not-allowed; }
+.file-display { background:#334155; border:1px solid #475569; border-radius:0.75rem; padding:0.75rem 1rem; color:#e2e8f0; display:flex; flex-direction: column; align-items:flex-start; gap:0.5rem; cursor:default; }
+.file-display .file-icon { color:#6366f1; }
+.file-display .file-name { flex-grow:1; color:#cbd5e1; }
+.file-display.empty { color:#94a3b8; font-style:italic; }
+.subcard { border:1px dashed #475569; border-radius:.5rem; padding:1rem; margin-top:1rem; }
+#qrcode0, #qrcode1, #qrcode2, #qrcode3, #qrcode4, #qrcode5, #qrcode6 { margin-left: auto; margin-right: auto; padding: 10px; background: white; border-radius: 8px; width: fit-content;}
+/* New Shield Loader Animation Styles */
+.loading-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(5px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.3s;
+}
+.loading-overlay.show {
+  display: flex;
+}
+.shield-container {
+  text-align: center;
+}
+.shield-loader {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.shield-icon {
+  width: 50px;
+  height: 50px;
+  fill: #6366f1;
+  animation: shield-pop 1.5s ease-in-out infinite;
+  z-index: 2;
+}
+.shield-loader::before, .shield-loader::after {
+  content: '';
+  position: absolute;
+  border: 3px solid #6366f1;
+  border-radius: 50%;
+  animation: pulse 1.5s linear infinite;
+}
+.shield-loader::after {
+  animation-delay: 0.5s;
+}
+.loading-text {
+  color: #cbd5e1;
+  margin-top: 20px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+@keyframes pulse {
+  0% { width: 60px; height: 60px; opacity: 0.8; }
+  100% { width: 120px; height: 120px; opacity: 0; }
+}
+@keyframes shield-pop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+</style>
+</head>
+<body>
+<header><h1>SafeQR - View Emergency Information</h1></header>
+<main>
+  <div id="personTabsContainer" class="flex flex-wrap gap-3 mb-8 border-b-2 border-gray-700 pb-4 justify-center"></div>
+
+  <div class="flex flex-wrap gap-2 mb-6">
+    <button class="step-tab active" data-step="0">Personal</button>
+    <button class="step-tab" data-step="1">Medical</button>
+    <button class="step-tab" data-step="2">Traffic</button>
+    <button class="step-tab" data-step="3">Institution</button>
+    <button class="step-tab" data-step="4">Employment</button>
+    <button class="step-tab" data-step="5">Bank</button>
+    <button class="step-tab" data-step="6">Social Media</button>
+  </div>
+  
+  <form id="viewForm" class="space-y-8">
+    <section class="view-section active" data-step="0">
+      <h2 class="text-xl font-semibold text-indigo-300 mb-4">Personal Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="fullName" placeholder="Full Name" readonly />
+        <input type="date" name="dob" placeholder="Date of Birth" readonly />
+        <input type="text" name="gender" placeholder="Gender" readonly />
+        <input type="text" name="nationality" placeholder="Nationality" readonly />
+        <input type="text" name="permanentAddress" placeholder="Permanent Address" readonly>
+        <input type="text" name="temporaryAddress" placeholder="Temporary Address" readonly>
+        <input type="email" name="email" placeholder="Email" readonly />
+        <input type="text" name="phone" placeholder="Phone Number" readonly />
+        <input type="text" name="passportNumber" placeholder="Passport Number" readonly />
+        <input type="text" name="aadharNumber" placeholder="Aadhar Number" readonly />
+        <input type="text" name="panNumber" placeholder="PAN Number" readonly />
+        <input type="text" name="emergencyContactName" placeholder="Emergency Contact Name" readonly />
+        <input type="text" name="emergencyContactPhone" placeholder="Emergency Contact Phone" readonly />
+      </div>
+      <h3 class="text-lg font-semibold text-indigo-400 mt-6 mb-3">Identity Documents</h3>
+      <div id="personalIdentityUploads" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <h3 class="text-lg font-semibold text-indigo-400 mt-6 mb-3">Other Personal Documents</h3>
+      <div id="personalOtherUploads" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="mt-6 text-center">
+        <div id="qrcode0"></div>
+        <button type="button" onclick="customizeThisQR()" class="mt-4 bg-indigo-600 px-4 py-2 rounded-lg text-white font-semibold hover:bg-indigo-700 transition">Customize Your QR</button>
+      </div>
+    </section>
+
+    <section class="view-section" data-step="1">
+       <h2 class="text-xl font-semibold text-indigo-300 mb-4">Medical Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="bloodType" placeholder="Blood Type" readonly />
+        <input type="text" name="allergies" placeholder="Allergies" readonly />
+        <input type="text" name="medications" placeholder="Medications" readonly />
+        <input type="text" name="medicalConditions" placeholder="Medical Conditions" readonly />
+        <input type="text" name="physicianName" placeholder="Physician Name" readonly />
+        <input type="text" name="physicianContact" placeholder="Physician Contact" readonly />
+        <input type="text" name="specialty" placeholder="Specialty" readonly />
+        <input type="text" name="insuranceProvider" placeholder="Insurance Provider" readonly />
+        <input type="text" name="insurancePolicyNumber" placeholder="Insurance Policy Number" readonly />
+      </div>
+      <h3 class="text-lg font-semibold text-indigo-400 mt-6 mb-3">Medical Documents</h3>
+      <div id="medicalUploads" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="mt-6 text-center">
+        <div id="qrcode1"></div>
+        <button type="button" onclick="customizeThisQR()" class="mt-4 bg-indigo-600 px-4 py-2 rounded-lg text-white font-semibold hover:bg-indigo-700 transition">Customize Your QR</button>
+      </div>
+    </section>
+
+    <section class="view-section" data-step="2">
+      <h2 class="text-xl font-semibold text-indigo-300 mb-4">Traffic Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="numberOfVehicles" placeholder="Number of Vehicles" readonly />
+        <input type="text" name="licenseNumber" placeholder="License Number" readonly />
+        <input type="date" name="licenseExpiry" placeholder="License Expiry" readonly />
+      </div>
+      <h3 class="text-lg font-semibold text-indigo-400 mt-6 mb-3">Vehicle Details & Documents</h3>
+      <div id="trafficUploads" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="mt-6 text-center">
+        <div id="qrcode2"></div>
+        <button type="button" onclick="customizeThisQR()" class="mt-4 bg-indigo-600 px-4 py-2 rounded-lg text-white font-semibold hover:bg-indigo-700 transition">Customize Your QR</button>
+      </div>
+    </section>
+
+    <section class="view-section" data-step="3">
+      <h2 class="text-xl font-semibold text-indigo-300 mb-4">Institution Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="institutionName" placeholder="Institution Name" readonly />
+        <input type="text" name="institutionType" placeholder="Institution Type" readonly />
+        <input type="text" name="class" placeholder="Class" readonly />
+        <input type="text" name="section" placeholder="Section" readonly />
+        <input type="text" name="rollNumber" placeholder="Roll Number" readonly />
+        <input type="text" name="institutionRegNumber" placeholder="Institution Reg Number" readonly />
+        <input type="text" name="institutionWebsite" placeholder="Institution Website" readonly />
+      </div>
+      <h3 class="text-lg font-semibold text-indigo-400 mt-6 mb-3">Institution Documents</h3>
+      <div id="institutionUploads" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="mt-6 text-center">
+        <div id="qrcode3"></div>
+        <button type="button" onclick="customizeThisQR()" class="mt-4 bg-indigo-600 px-4 py-2 rounded-lg text-white font-semibold hover:bg-indigo-700 transition">Customize Your QR</button>
+      </div>
+    </section>
+
+    <section class="view-section" data-step="4">
+      <h2 class="text-xl font-semibold text-indigo-300 mb-4">Employment Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="employeeId" placeholder="Employee ID" readonly />
+        <input type="text" name="uanPfNumber" placeholder="UAN/PF Number" readonly />
+      </div>
+      <h3 class="text-lg font-semibold text-indigo-400 mt-6 mb-3">Employment Documents</h3>
+      <div id="employmentUploads" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="mt-6 text-center">
+        <div id="qrcode4"></div>
+        <button type="button" onclick="customizeThisQR()" class="mt-4 bg-indigo-600 px-4 py-2 rounded-lg text-white font-semibold hover:bg-indigo-700 transition">Customize Your QR</button>
+      </div>
+    </section>
+
+    <section class="view-section" data-step="5">
+      <h2 class="text-xl font-semibold text-indigo-300 mb-4">Bank Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="bankName" placeholder="Bank Name" readonly />
+        <input type="text" name="bankIfsc" placeholder="IFSC" readonly />
+        <input type="text" name="bankAccountNumber" placeholder="Account Number" readonly />
+        <input type="text" name="upiId" placeholder="UPI ID" readonly />
+      </div>
+      <h3 class="text-lg font-semibold text-indigo-400 mt-6 mb-3">Bank Documents</h3>
+      <div id="bankUploads" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="mt-6 text-center">
+        <div id="qrcode5"></div>
+        <button type="button" onclick="customizeThisQR()" class="mt-4 bg-indigo-600 px-4 py-2 rounded-lg text-white font-semibold hover:bg-indigo-700 transition">Customize Your QR</button>
+      </div>
+    </section>
+
+    <section class="view-section" data-step="6">
+      <h2 class="text-xl font-semibold text-indigo-300 mb-4">Social Media</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="instagram" placeholder="Instagram" readonly />
+        <input type="text" name="facebook" placeholder="Facebook" readonly />
+        <input type="text" name="twitter" placeholder="Twitter/X" readonly />
+        <input type="text" name="linkedin" placeholder="LinkedIn" readonly />
+      </div>
+      <div class="mt-6 text-center">
+        <div id="qrcode6"></div>
+        <button type="button" onclick="customizeThisQR()" class="mt-4 bg-indigo-600 px-4 py-2 rounded-lg text-white font-semibold hover:bg-indigo-700 transition">Customize Your QR</button>
+      </div>
+    </section>
+  </form>
+</main>
+
+<script>
+// --- CONFIGURATION ---
+const API_BASE_URL = "https://safeqr.life";
+let currentPersonIndex; 
+
+// --- HELPER FUNCTIONS ---
+
+function createFullUrl(page, params = '') {
+    const path = window.location.pathname;
+    const basePath = path.substring(0, path.lastIndexOf('/') + 1);
+    return window.location.origin + basePath + page + params;
+}
+
+function customizeThisQR() {
+    window.location.href = createFullUrl('customyourqr.html', `?person=${currentPersonIndex}`); 
+}
+
+// Replace this function in view.html
+
+function generateQRCodes(personIndex, ownerId) {
+    for (let i = 0; i < 7; i++) {
+        const qrContainer = document.getElementById('qrcode' + i);
+        if (!qrContainer) continue;
+        qrContainer.innerHTML = '';
+        // FIX: Added ownerId to the QR code's URL
+        const qrUrlText = createFullUrl('view.html', `?ownerId=${ownerId}&person=${personIndex}&section=${i}`);
+        new QRCode(qrContainer, {
+            text: qrUrlText, width: 128, height: 128, colorDark: "#0f172a",
+            colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H
+        });
+    }
+}
+
+function createAndAppendP(parent, text, isBold = false) {
+    const p = document.createElement('p');
+    if (isBold) p.style.fontWeight = 'bold';
+    p.textContent = text;
+    parent.appendChild(p);
+}
+
+function displayVehicles(savedData, personIndex) {
+    const container = document.getElementById("trafficUploads");
+    const numVehicles = parseInt(savedData[`person_${personIndex}_numberOfVehicles`] || '0', 10);
+
+    for (let i = 0; i < numVehicles; i++) {
+        const div = document.createElement("div");
+        div.className = "subcard";
+        createAndAppendP(div, `Vehicle ${i + 1}`, true);
+        createAndAppendP(div, `Type: ${savedData[`person_${personIndex}_vehicle_type_${i}`] || 'N/A'}`);
+        createAndAppendP(div, `Company: ${savedData[`person_${personIndex}_vehicle_company_${i}`] || 'N/A'}`);
+        createAndAppendP(div, `Model: ${savedData[`person_${personIndex}_vehicle_model_${i}`] || 'N/A'}`);
+        createAndAppendP(div, `Regn No: ${savedData[`person_${personIndex}_registration_number_${i}`] || 'N/A'}`);
+        container.appendChild(div);
+    }
+}
+
+function displayMarksheets(savedData, uploadedFiles, personIndex) {
+    const container = document.getElementById("institutionUploads");
+    let marksheetIndex = 1;
+    while (savedData[`person_${personIndex}_marksheet_name_${marksheetIndex}`]) {
+        const div = document.createElement("div");
+        div.className = "subcard";
+        const marksheetName = savedData[`person_${personIndex}_marksheet_name_${marksheetIndex}`];
+        const fileKey = `person_${personIndex}_upload_marksheet_${marksheetIndex}`;
+        const uploadedFile = uploadedFiles.find(f => f.originalName === fileKey);
+
+        createAndAppendP(div, marksheetName, true);
+        
+        const pFile = document.createElement('p');
+        pFile.textContent = 'File: ';
+        if (uploadedFile) {
+            const fileLink = document.createElement('a');
+            fileLink.href = uploadedFile.data;
+            fileLink.target = '_blank';
+            fileLink.download = uploadedFile.name;
+            fileLink.className = 'text-indigo-400 hover:underline';
+            fileLink.textContent = uploadedFile.name;
+            pFile.appendChild(fileLink);
+        } else {
+            pFile.appendChild(document.createTextNode('No file uploaded'));
+        }
+        div.appendChild(pFile);
+        
+        container.appendChild(div);
+        marksheetIndex++;
+    }
+}
+// Is poore function ko naye code se badal dein
+
+// Is poore function ko naye code se badal dein
+
+// This variable should be defined somewhere in your project, for example in a config file.
+
+
+async function notifyUserOfScan(scannedUserId) {
+    // सबसे पहले चेक करें कि ब्राउज़र में जियोलोकेशन सपोर्ट है या नहीं।
+    if (!('geolocation' in navigator)) {
+        console.error("Geolocation is not supported by this browser.");
+        // अगर सपोर्ट नहीं है, तो फंक्शन से बाहर निकल जाएं।
+        return;
+    }
+
+    try {
+        // navigator.geolocation.getCurrentPosition को Promise में रैप करें ताकि async/await का उपयोग कर सकें।
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true, // For more accurate position
+                timeout: 5000, // Wait 5 seconds
+                maximumAge: 0 // Don't use a cached position
+            });
+        });
+
+        // position ऑब्जेक्ट से अक्षांश (latitude) और देशांतर (longitude) निकालें।
+        const { latitude, longitude } = position.coords;
+
+        // सर्वर को असली लोकेशन डेटा भेजें।
+        // यहां fetch के URL को बैकटिक्स (`) में रखा गया है।
+        await fetch(`${API_BASE_URL}/api/user/notify-scan`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scannedUserId, latitude, longitude })
+        });
+
+        console.log('Scan notification with user\'s real location sent successfully.');
+
+    } catch (err) {
+        // यह एरर तब आएगा जब यूजर लोकेशन की परमिशन नहीं देगा, या नेटवर्क में कोई समस्या होगी।
+        console.error('Failed to get location or send notification:', err);
+    }
+}
+
+
+// --- MAIN LOGIC ON PAGE LOAD ---
+document.addEventListener("DOMContentLoaded", async () => {
+    const mainElement = document.querySelector('main');
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+const loader = document.getElementById('loadingOverlay');
+
+    try {
+        // Show the new shield animation
+        loader.classList.add('show');
+
+        // (The rest of your data fetching and display logic is the same)
+        const urlParams = new URLSearchParams(window.location.search);
+        const ownerIdFromUrl = urlParams.get("ownerId");
+        const personIdFromUrl = urlParams.get("person");
+        const sectionToShow = parseInt(urlParams.get("section") || '0', 10);
+        
+        let apiUrl = `${API_BASE_URL}/api/user/profile`;
+        if (ownerIdFromUrl) {
+            apiUrl += `?ownerId=${ownerIdFromUrl}`;
+        }
+        
+        // Added a small delay to make the animation visible on fast connections
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const res = await fetch(apiUrl, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.status === 404) {
+            mainElement.innerHTML = '<h2 class="text-center text-yellow-400">You have not filled out your information yet.</h2><a href="form.html" class="block text-center mt-4 bg-indigo-600 px-4 py-2 rounded-lg text-white font-semibold hover:bg-indigo-700 transition">Go to Form</a>';
+            return;
+        }
+        if (!res.ok) throw new Error(`Failed to fetch data: ${res.statusText}`);
+
+        const { data: allPersonsData, ownerId } = await res.json();
+
+        localStorage.setItem('safeqrAllPersonsData', JSON.stringify(allPersonsData));
+        localStorage.setItem('safeqrOwnerId', ownerId); 
+        let deducedPlan = 'basic';
+        if (allPersonsData.length >= 4) deducedPlan = 'family';
+        else if (allPersonsData.length >= 2) deducedPlan = 'pro';
+        localStorage.setItem('selectedPlan', deducedPlan);
+
+        let currentPersonIndex = personIdFromUrl ? parseInt(personIdFromUrl, 10) : (allPersonsData[0]?.personIndex || 1);
+
+        if (ownerIdFromUrl) {
+            notifyUserOfScan(ownerIdFromUrl);
+        }
+
+        const personData = allPersonsData.find(p => parseInt(p.personIndex) === currentPersonIndex);
+        if (!personData) {
+            mainElement.innerHTML = '<h2 class="text-center text-red-400">Error: Data for this person not found.</h2>';
+            return;
+        }
+        
+        const personTabsContainer = document.getElementById('personTabsContainer');
+        personTabsContainer.innerHTML = '';
+        allPersonsData.forEach(person => {
+            const personTab = document.createElement('a');
+            let tabUrl = createFullUrl('view.html', `?person=${person.personIndex}`);
+            if (ownerIdFromUrl) tabUrl += `&ownerId=${ownerIdFromUrl}`;
+            personTab.href = tabUrl;
+            const isActive = parseInt(person.personIndex) === currentPersonIndex;
+            personTab.className = `person-tab ${isActive ? 'active' : ''}`;
+            personTab.textContent = `Person ${person.personIndex}`;
+            personTabsContainer.appendChild(personTab);
+});
+        
+        const formData = personData.textData;
+        const uploadedFiles = personData.files;
+        Object.keys(formData).forEach(key => {
+            const fieldName = key.replace(`person_${currentPersonIndex}_`, '').replace(/_\\d+$/, '');
+            const field = document.querySelector(`[name="${fieldName}"]`);
+            if (field) field.value = formData[key];
+        });
+        const fileSectionMapping = { 'upload_aadhar': 'personalIdentityUploads', 'upload_pan': 'personalIdentityUploads', 'upload_passport': 'personalIdentityUploads', 'upload_voter': 'personalIdentityUploads', 'upload_passport_photo': 'personalIdentityUploads', 'upload_birth': 'personalOtherUploads', 'upload_medicalHistory': 'medicalUploads', 'upload_rc': 'trafficUploads', 'upload_licence': 'trafficUploads', 'upload_insurance': 'trafficUploads', 'upload_puc': 'trafficUploads', 'upload_studentId': 'institutionUploads', 'upload_employeeId': 'employmentUploads', 'upload_resume': 'employmentUploads', 'upload_healthInsurance': 'employmentUploads', 'upload_training': 'employmentUploads', 'upload_bankPassbook': 'bankUploads', };
+        Object.values(fileSectionMapping).forEach(id => { const container = document.getElementById(id); if (container) container.innerHTML = ''; });
+        uploadedFiles.forEach(fileObj => { const originalName = fileObj.originalName.replace(`person_${currentPersonIndex}_`, ''); const sectionId = fileSectionMapping[originalName]; if (!sectionId) return; const container = document.getElementById(sectionId); if (!container) return; const div = document.createElement("div"); div.className = "file-display"; let displayName = originalName.replace('upload_', '').replace(/_/g, ' ').replace(/(^\\w|\\s\\w)/g, m => m.toUpperCase()); const linkWrapper = document.createElement('div'); linkWrapper.className = 'flex items-center w-full'; linkWrapper.innerHTML = '<span class="file-icon mr-2">📁</span>'; const fileLink = document.createElement('a'); fileLink.href = fileObj.data; fileLink.target = '_blank'; fileLink.download = fileObj.name; fileLink.className = 'file-name text-indigo-400 hover:underline'; fileLink.textContent = `${displayName}: ${fileObj.name}`; linkWrapper.appendChild(fileLink); div.appendChild(linkWrapper); if (fileObj.type && fileObj.type.startsWith("image/")) { const img = document.createElement('img'); img.src = fileObj.data; img.alt = fileObj.name; img.style.cssText = 'max-width:150px; margin-top:10px; border-radius:8px;'; div.appendChild(img); } container.appendChild(div); });
+        displayVehicles(formData, currentPersonIndex);
+        displayMarksheets(formData, uploadedFiles, currentPersonIndex);
+        generateQRCodes(currentPersonIndex, ownerId);
+        const tabs = document.querySelectorAll('.step-tab');
+        const sections = document.querySelectorAll('.view-section');
+        tabs.forEach((tab, i) => { tab.addEventListener('click', () => { tabs.forEach(t => t.classList.remove('active')); sections.forEach(s => s.classList.remove('active')); tab.classList.add('active'); sections[i].classList.add('active'); }); });
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.classList.remove('active'));
+        if (tabs[sectionToShow]) tabs[sectionToShow].classList.add('active');
+        if (sections[sectionToShow]) sections[sectionToShow].classList.add('active');
+
+    } catch (err) {
+        mainElement.innerHTML = `<h2 class="text-center text-red-400">Error: ${err.message}. Please try logging in again.</h2>`;
+    } finally {
+        // Hide the animation once everything is done
+        loader.classList.remove('show');
+    }
+    
+});
+</script>
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="shield-container">
+    <div class="shield-loader">
+      <svg class="shield-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z"></path>
+      </svg>
+    </div>
+    <div class="loading-text">Securing Your Profile...</div>
+  </div>
+</div>
+</body>
+</html>

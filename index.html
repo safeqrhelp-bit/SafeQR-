@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAFE QR- Your Personal Information Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js"></script>
+ <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        nav {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        nav .logo-text {
+            color: #6366f1;
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+            letter-spacing: 0.05em;
+        }
+        nav a:not(button a) {
+            color: #cbd5e1;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
+        nav a:not(button a):hover {
+            color: #a78bfa;
+            transform: translateY(-2px);
+        }
+        nav a:not(button a)::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            display: block;
+            margin-top: 5px;
+            right: 0;
+            background: #6366f1;
+            transition: width 0.3s ease, right 0.3s ease;
+        }
+        nav a:not(button a):hover::after {
+            width: 100%;
+            right: 0;
+        }
+        nav button, .hero-button {
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        nav button:hover, .hero-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .popup-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        .popup-box {
+            background: #1e293b;
+            border: 1px solid #6366f1;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        /* Navbar */
+        nav {
+            background: rgba(15, 23, 42, 0.8); /* Semi-transparent dark background */
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        nav .logo-text {
+            color: #6366f1; /* Indigo accent */
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+            letter-spacing: 0.05em;
+        }
+        nav a:not(button a) {
+            color: #cbd5e1;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
+        nav a:not(button a):hover {
+            color: #a78bfa; /* Lighter indigo on hover */
+            transform: translateY(-2px);
+        }
+        nav a:not(button a)::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            display: block;
+            margin-top: 5px;
+            right: 0;
+            background: #6366f1;
+            transition: width 0.3s ease, right 0.3s ease;
+        }
+        nav a:not(button a):hover::after {
+            width: 100%;
+            right: 0;
+        }
+        nav button, .hero-button {
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        nav button:hover, .hero-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Popup Modal Styles */
+        .popup-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        .popup-box {
+            background: #1e293b;
+            border: 1px solid #6366f1;
+        }
+
+        /* Hero Section (Existing styles remain same) */
+        .hero-gradient h1 { animation: slideInLeft 1s ease-out; }
+        .hero-gradient p { animation: slideInRight 1s ease-out; }
+        .hero-gradient {
+            background: linear-gradient(to right, #1f2937, #374151); /* Darker, subtle gradient */
+            color: #e2e8f0;
+            padding: 6rem 0;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 2rem 2rem; /* Rounded bottom corners */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .hero-gradient h1 {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            color: #a78bfa; /* Purple accent */
+            text-shadow: 0 0 20px rgba(167, 139, 250, 0.6);
+            animation: slideInLeft 1s ease-out;
+        }
+        .hero-gradient p {
+            font-size: 1.25rem;
+            color: #cbd5e1;
+            animation: slideInRight 1s ease-out;
+        }
+        .qr-placeholder {
+            background: #e2e8f0; /* Light background for QR */
+            border: 4px solid #6366f1; /* Indigo border */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            animation: pulseBorder 2s infinite alternate;
+        }
+        .protected-badge {
+            background: #ef4444; /* Red for protected badge */
+            color: white;
+            border-radius: 50%;
+            padding: 0.5rem;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            animation: bounceIn 1s ease-out;
+        }
+        .hero-gradient .bg-white {
+            background-color: #e2e8f0; /* Light button */
+            color: #6366f1;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .hero-gradient .bg-white:hover {
+            background-color: #cbd5e1;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .hero-gradient .border-white {
+            border-color: #a78bfa; /* Purple border */
+            color: #a78bfa;
+        }
+        .hero-gradient .border-white:hover {
+            background-color: #a78bfa;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(167, 139, 250, 0.4);
+        }
+
+        /* Trust Badges */
+        .bg-gray-100 {
+            background-color: #1f2937; /* Dark background */
+            padding: 3rem 0;
+            border-radius: 1.5rem;
+            margin-top: -1rem; /* Overlap with hero */
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .trust-badge-item {
+            color: #e2e8f0;
+            animation: slideInUp 1s ease-out;
+        }
+        .trust-badge-item .text-indigo-600 {
+            color: #22d3ee; /* Teal accent */
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+        }
+        .trust-badge-item .text-gray-600 {
+            color: #94a3b8;
+        }
+
+        /* Features Section */
+        #features {
+            background-color: #1f2937; /* Dark background */
+            padding: 6rem 0;
+            border-radius: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        #features h2 {
+            color: #6366f1; /* Indigo accent */
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+        #features p {
+            color: #cbd5e1;
+        }
+        .feature-card {
+            background: #334155; /* Darker card background */
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(99, 102, 241, 0.2); /* Subtle border glow */
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(99, 102, 241, 0.4);
+        }
+        .feature-card .bg-indigo-500 {
+            background-color: #22d3ee; /* Teal icon background */
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.4);
+        }
+        .feature-card h3 {
+            color: #a78bfa; /* Purple accent */
+        }
+        .feature-card p {
+            color: #94a3b8;
+        }
+
+        /* How It Works Section */
+        #how-it-works {
+            background-color: #1f2937; /* Dark background */
+            padding: 6rem 0;
+            border-radius: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        #how-it-works h2 {
+            color: #6366f1; /* Indigo accent */
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+        #how-it-works p {
+            color: #cbd5e1;
+        }
+        #how-it-works .qr-placeholder {
+            background: #e2e8f0;
+            border: 4px solid #22d3ee; /* Teal border */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        #how-it-works .bg-white {
+            background: #334155; /* Darker card background */
+            border: 1px solid rgba(34, 211, 238, 0.2); /* Subtle teal border */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        #how-it-works .bg-indigo-100 {
+            background-color: #22d3ee; /* Teal icon background */
+            color: white;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.4);
+        }
+        #how-it-works h4 {
+            color: #a78bfa; /* Purple accent */
+        }
+        #how-it-works .text-gray-500 {
+            color: #94a3b8;
+        }
+        #how-it-works .bg-indigo-600 {
+            background-color: #6366f1; /* Indigo button */
+            color: white;
+        }
+        #how-it-works .bg-indigo-600:hover {
+            background-color: #4f46e5;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+        #how-it-works .bg-gray-200 {
+            background-color: #475569; /* Slate gray button */
+            color: #e2e8f0;
+        }
+        #how-it-works .bg-gray-200:hover {
+            background-color: #64748b;
+            box-shadow: 0 6px 20px rgba(71, 85, 105, 0.4);
+        }
+        #how-it-works img {
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        #how-it-works .absolute {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 0 0 1.5rem 1.5rem;
+        }
+
+        /* Tools Section */
+        #tools {
+            background-color: #1f2937; /* Dark background */
+            padding: 6rem 0;
+            border-radius: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        #tools h2 {
+            color: #6366f1; /* Indigo accent */
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+        #tools p {
+            color: #cbd5e1;
+        }
+        #tools .feature-card {
+            background: #334155; /* Darker card background */
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        #tools .feature-card h3 {
+            color: #a78bfa; /* Purple accent */
+        }
+        #tools label {
+            color: #a78bfa; /* Purple accent for labels */
+        }
+        #tools input[type="text"], #tools select, #tools textarea {
+            background: #475569; /* Slate input background */
+            border: 1px solid #64748b;
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        #tools input[type="text"]:focus, #tools select:focus, #tools textarea:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+            outline: none;
+        }
+        #tools input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 40px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+        #tools input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        #tools input[type="color"]::-webkit-color-swatch {
+            border: 1px solid #64748b;
+            border-radius: 0.75rem;
+        }
+        #tools input[type="color"]::-moz-color-swatch-wrapper {
+            padding: 0;
+        }
+        #tools input[type="color"]::-moz-color-swatch {
+            border: 1px solid #64748b;
+            border-radius: 0.75rem;
+        }
+        #tools input[type="range"] ::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #64748b;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+        #tools input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+        }
+        #tools input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Pricing Section */
+        #pricing {
+            background-color: #1f2937; /* Dark background */
+            padding: 6rem 0;
+            border-radius: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        #pricing h2 {
+            color: #6366f1; /* Indigo accent */
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+        #pricing p {
+            color: #cbd5e1;
+        }
+        #pricing .pricing-card {
+            background: #334155; /* Darker card background */
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: #e2e8f0;
+        }
+        #pricing .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(99, 102, 241, 0.4);
+        }
+        #pricing .pricing-card h3 {
+            color: #a78bfa; /* Purple accent */
+        }
+        #pricing .pricing-card .text-gray-600 {
+            color: #94a3b8;
+        }
+        #pricing .pricing-card .text-gray-900 {
+            color: #e2e8f0;
+        }
+        #pricing .pricing-card .text-green-500 {
+            color: #34d399; /* Green checkmark */
+        }
+        #pricing .pricing-card .text-red-500 {
+            color: #ef4444; /* Red cross */
+        }
+        #pricing .pricing-card .bg-indigo-600 {
+            background-color: #6366f1;
+        }
+        #pricing .pricing-card .bg-indigo-600:hover {
+            background-color: #4f46e5;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+        #pricing .pricing-card.highlighted {
+            background: linear-gradient(to bottom right, #6366f1, #a78bfa); /* Highlighted gradient */
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(167, 139, 250, 0.6);
+            color: white;
+        }
+        #pricing .pricing-card.highlighted h3, #pricing .pricing-card.highlighted .text-white {
+            color: white;
+        }
+        #pricing .pricing-card.highlighted .text-indigo-200 {
+            color: #e0e7ff;
+        }
+        #pricing .pricing-card.highlighted .bg-white {
+            background-color: white;
+            color: #6366f1;
+        }
+        #pricing .pricing-card.highlighted .bg-white:hover {
+            background-color: #e2e8f0;
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Team Section */
+        #team {
+            background: linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a); /* Dark gradient background */
+            padding: 6rem 0;
+            border-radius: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        #team h2 {
+            color: #6366f1; /* Indigo accent */
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+        #team p {
+            color: #cbd5e1;
+        }
+        #team .team-img {
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #6366f1;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        #team .team-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        #team .team-card {
+            background: #334155;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        #team .team-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(99, 102, 241, 0.4);
+        }
+        #team .team-card.highlighted {
+            background: linear-gradient(to bottom right, #6366f1, #a78bfa);
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(167, 139, 250, 0.6);
+            color: white;
+        }
+        #team .team-card.highlighted .team-img {
+            border-color: white;
+        }
+        #team .team-card.highlighted h3, #team .team-card.highlighted p {
+            color: white;
+        }
+
+        /* Contact Section */
+        #contact {
+            background-color: #1f2937; /* Dark background */
+            padding: 6rem 0;
+            border-radius: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        #contact h2 {
+            color: #6366f1; /* Indigo accent */
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+        #contact p {
+            color: #cbd5e1;
+        }
+        #contact .contact-card {
+            background: #334155; /* Darker card background */
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: #e2e8f0;
+        }
+        #contact .contact-card h3 {
+            color: #a78bfa; /* Purple accent */
+        }
+        #contact .contact-card .text-gray-700 {
+            color: #cbd5e1;
+        }
+        #contact .contact-card .text-indigo-600 {
+            color: #6366f1;
+        }
+        #contact .contact-card .text-gray-400 {
+            color: #94a3b8;
+        }
+        #contact .contact-card .hover\:text-indigo-600:hover {
+            color: #6366f1;
+        }
+        #contact .contact-card input[type="text"],
+        #contact .contact-card input[type="email"],
+        #contact .contact-card textarea {
+            background: #475569;
+            border: 1px solid #64748b;
+            color: #e2e8f0;
+        }
+        #contact .contact-card input[type="text"]:focus,
+        #contact .contact-card input[type="email"]:focus,
+        #contact .contact-card textarea:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+        }
+        #contact .contact-card button {
+            background-color: #6366f1;
+            color: white;
+        }
+        #contact .contact-card button:hover {
+            background-color: #4f46e5;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+
+        /* Animations */
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulseBorder {
+            0% { border-color: #6366f1; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+            50% { border-color: #a78bfa; box-shadow: 0 10px 40px rgba(167, 139, 250, 0.6); }
+            100% { border-color: #6366f1; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .popup-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        .popup-box {
+            background: #1e293b;
+            border: 1px solid #6366f1;
+        }
+ </style>
+</head>
+<body>
+    <nav class="shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex-shrink-0 flex items-center no-style">
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-white font-bold text-xl"><img src="data/LOGO.png" alt="LOGO" class="h-10 w-12"></div>
+                        <span class="ml-2 text-xl font-semibold logo-text">SAFE QR</span>
+                    </a>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                    <a href="#features">Features</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#pricing">Pricing</a>
+                    <a href="#team">Team</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-3" id="navbar-buttons">
+                    <a id="authBtn" href="signup.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium">Sign Up</a>
+                    <a id="dashboardBtn" href="dashboard.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium hidden">My Dashboard</a>
+                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hidden">Logout</button>
+                </div>
+                <button type="button" class="sm:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-label="Open main menu">
+                    <span class="sr-only">Open main menu</span>
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="relative w-full h-screen overflow-hidden">
+        <video autoplay muted loop playsinline id="bg-video" class="absolute inset-0 w-full h-full object-cover z-0">
+            <source src="data/20250907_1404_video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="absolute inset-0 bg-black/50 z-10"></div>
+        <div class="relative z-20 max-w-7xl mx-auto py-12 sm:py-20 lg:py-28 px-4 text-center text-white">
+            <h1 class="font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+              Secure Your Life with SAFE QR !!
+            </h1>
+            <p class="mt-4 max-w-lg mx-auto text-xl">
+              Secure QR solution. Store, share, and protect your critical information with affordable password-protected QR codes.
+            </p>
+            <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+              <a href="#" id="getQrBtn" class="hero-button bg-white text-indigo-600 hover:bg-gray-100 px-8 py-3 rounded-md text-lg font-semibold shadow-md">
+                Get Your QR Now
+              </a>
+             <a href="privacypolicy.html" class="hero-button bg-transparent border-2 border-white text-white hover:bg-white hover:text-indigo-600 px-8 py-3 rounded-md text-lg font-semibold no-style">
+                Privacy Policy
+              </a>
+            </div>
+        </div>
+    </div>
+
+     <div class="bg-gray-100 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+                <div class="text-center trust-badge-item">
+                    <div class="text-3xl font-bold text-indigo-600">1K+</div>
+                    <div class="text-gray-600">Protected Documents</div>
+                </div>
+                <div class="text-center trust-badge-item">
+                    <div class="text-3xl font-bold text-indigo-600">50+</div>
+                    <div class="text-gray-600">Hospitals Using</div>
+                </div>
+               
+                <div class="text-center trust-badge-item">
+                    <div class="text-3xl font-bold text-indigo-600">24/7</div>
+                    <div class="text-gray-600">Emergency Access</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="features" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Features</h2>
+                <p class="mt-2 text-3xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-4xl">
+                    A Better Way to Manage Your Critical Information
+                </p>
+                <p class="mt-4 max-w-2xl text-lg text-gray-500 lg:mx-auto">
+                    SecureQR Life provides encrypted storage and controlled access to your most important documents.
+                </p>
+            </div>
+
+            <div class="mt-16">
+                <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="p-6 rounded-lg shadow-sm feature-card">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <h3 class="mt-6 text-lg font-medium text-gray-900">Document Storage</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Securely store digital copies of IDs, licenses, marksheets, and address proofs in one place, accessible only via your QR.
+                        </p>
+                    </div>
+                    
+                    <div class="p-6 rounded-lg shadow-sm feature-card">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <h3 class="mt-6 text-lg font-medium text-gray-900">Health Monitoring</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Update and track your medical records like allergies, blood sugar levels, and emergency contacts for hospitals.
+                        </p>
+                    </div>
+                    
+                    <div class="p-6 rounded-lg shadow-sm feature-card">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="mt-6 text-lg font-medium text-gray-900">Password Protection</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Multi-layer security with personal passwords and organization verification for sensitive information access.
+                        </p>
+                    </div>
+                    
+                    <div class="p-6 rounded-lg shadow-sm feature-card">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h3 class="mt-6 text-lg font-medium text-gray-900">Authorized Access</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Only schools, hospitals, police stations can decode receiver QRs, ensuring information only reaches intended recipients.
+                        </p>
+                    </div>
+                    
+                    <div class="p-6 rounded-lg shadow-sm feature-card">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <h3 class="mt-6 text-lg font-medium text-gray-900">Vehicle Application</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Display your QR on windshield or mobile for emergency identification during accidents or roadside checks.
+                        </p>
+                    </div>
+                    
+                    <div class="p-6 rounded-lg shadow-sm feature-card">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                            <i class="fas fa-print"></i>
+                        </div>
+                        <h3 class="mt-6 text-lg font-medium text-gray-900">Secure Printing</h3>
+                        <p class="mt-2 text-base text-gray-500">
+                            Share documents through authorized print shops using receiver QR codes to prevent misuse of your copies.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="how-it-works" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Process</h2>
+                <p class="mt-2 text-3xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-4xl">
+                    How SecureQR Life Works
+                </p>
+            </div>
+            
+            <div class="mt-10 space-y-20">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2">
+                        <div class="qr-placeholder rounded-lg mx-auto mb-8 p-4">
+                            <div class="text-gray-600 text-xs text-center font-mono">
+                                SECURE QR CODE<br>#XK31F8P9
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 md:pl-8">
+                        <h3 class="text-2xl font-bold text-gray-900">1. Create Your Secure Profile</h3>
+                        <p class="mt-4 text-gray-600">
+                            Sign up and upload your documents. Our system will generate a unique SecureQR code that only you can initially access. Set up your privacy preferences and passwords.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col md:flex-row-reverse items-center">
+                    <div class="md:w-1/2">
+                        <div class="bg-white p-6 rounded-lg shadow-lg border">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                    <i class="fas fa-laptop-code"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="text-lg font-medium text-gray-900">Access Request</h4>
+                                    <p class="text-gray-500">Emergency QR Scan</p>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-500">Scan Location</span>
+                                    <span class="text-sm font-medium text-gray-900">City General Hospital</span>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-sm font-medium text-gray-500">Request Time</span>
+                                    <span class="text-sm font-medium text-gray-900">Today, 14:30</span>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-sm font-medium text-gray-500">Request Type</span>
+                                    <span class="text-sm font-medium text-gray-900">Medical Records</span>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex space-x-3">
+                                <button class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium">Approve</button>
+                                <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-medium">Deny</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 md:pr-8">
+                        <h3 class="text-2xl font-bold text-gray-900">2. Authorized Access</h3>
+                        <p class="mt-4 text-gray-600">
+                            When authorities scan your QR, you'll receive an access request notification. You can approve or deny access, or set automatic access for emergencies based on your preferences.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2">
+                        <div class="relative">
+                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e3ab99c0-dd0d-459e-ada6-e4c78fe650d3.png" alt="Hospital staff scanning a patient's QR bracelet with secure access showing on a tablet screen with information about allergies and medical history" class="rounded-lg shadow-lg" />
+                            <div class="absolute bottom-4 left-0 right-0 text-center text-white px-4 py-2">
+                                Authorized Medical Personnel View
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 md:pl-8">
+                        <h3 class="text-2xl font-bold text-gray-900">3. Information Delivery</h3>
+                        <p class="mt-4 text-gray-600">
+                            Approved users receive only the information they're authorized to see. Hospitals get medical records, schools see academic documents, and police access your identification as needed.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="planPopup" class="fixed inset-0 z-50 flex items-center justify-center p-4 popup-overlay hidden">
+        <div class="relative w-full max-w-md p-8 text-center rounded-2xl shadow-xl popup-box">
+            <button class="close-popup-btn absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h3 class="text-2xl font-bold text-white mb-4">Choose Your Plan First!</h3>
+            <p class="text-gray-300 mb-6">To get your QR code, please select a plan that suits your needs.</p>
+            <a href="#pricing" class="close-popup-btn w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-md text-lg font-semibold transition-colors duration-200 no-style">
+                View Plans
+            </a>
+        </div>
+    </div>
+
+    <div id="alertPopup" class="fixed inset-0 z-50 flex items-center justify-center p-4 popup-overlay hidden">
+        <div class="relative w-full max-w-md p-8 text-center rounded-2xl shadow-xl popup-box">
+            <button class="close-popup-btn absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h3 id="alertPopupTitle" class="text-2xl font-bold text-white mb-4">Alert</h3>
+            <p id="alertPopupMessage" class="text-gray-300 mb-6">This is an alert message.</p>
+            <button id="alertPopupOkBtn" class="close-popup-btn w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-md text-lg font-semibold transition-colors duration-200">
+                OK
+            </button>
+        </div>
+    </div>
+    
+    <div id="pricing" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Pricing</h2>
+                <p class="mt-2 text-3xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-4xl">
+                    Affordable Plans for Everyone
+                </p>
+                <p class="mt-4 max-w-2xl text-lg text-gray-500 lg:mx-auto">
+                    Choose the plan that best fits your needs, from basic personal use to comprehensive family protection.
+                </p>
+            </div>
+
+            <div class="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="p-8 rounded-lg shadow-sm pricing-card">
+                    <h3 class="text-2xl font-bold text-gray-900">Basic</h3>
+                    <p class="mt-4 text-gray-600">Ideal for individual users.</p>
+                    <div class="mt-6 flex items-center">
+                        <span class="text-5xl font-extrabold text-gray-900">₹249</span>
+                        <span class="ml-2 text-xl font-medium text-gray-500">/year</span>
+                    </div>
+                    <ul class="mt-6 space-y-4 flex-grow">
+                        <li class="flex items-center">
+                            <i class="fas fa-box text-green-500 mr-2"></i>
+                            <span>Storage: 500 MB</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-sticky-note text-green-500 mr-2"></i>
+                            <span>4 SafeQR logo stickers (basic packet)</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-palette text-green-500 mr-2"></i>
+                            <span>10 templates &rarr; choose any 2</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-plus-circle text-green-500 mr-2"></i>
+                            <span>Add-on: Custom design QR @ ₹20/QR</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-gift text-green-500 mr-2"></i>
+                            <span>Invite 3 friends &rarr; Upgrade to Pro (validity adjusted)</span>
+                        </li>
+                    </ul>
+                    <a href="form.html?plan=basic"
+                    onclick="selectPlan('basic')"
+                    class="mt-8 block w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-3 rounded-md text-lg font-semibold transition-colors duration-200">
+                    Choose Basic — ₹249
+                      </a>
+                </div>
+
+                <div class="p-8 rounded-lg shadow-lg pricing-card highlighted">
+                    <h3 class="text-2xl font-bold text-white">Pro</h3>
+                    <p class="mt-4 text-indigo-200">Perfect for a pair/couple</p>
+                    <div class="mt-6 flex items-center">
+                        <span class="text-5xl font-extrabold text-white">₹549</span>
+                        <span class="ml-2 text-xl font-medium text-indigo-200">/year</span>
+                    </div>
+                    <ul class="mt-6 space-y-4 flex-grow">
+                        <li class="flex items-center">
+                            <i class="fas fa-box text-white mr-2"></i>
+                            <span>Storage: 2 GB</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-sticky-note text-white mr-2"></i>
+                            <span>4 premium SafeQR stickers (kit packaging)</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-palette text-white mr-2"></i>
+                            <span>20&ndash;25 templates unlocked</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-magic text-white mr-2"></i>
+                            <span>Custom design QR included</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-plus-circle text-white mr-2"></i>
+                            <span>Add-on: Extra stickers/templates available</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-gift text-white mr-2"></i>
+                            <span>Invite 6 friends &rarr; Upgrade to Family (validity adjusted)</span>
+                        </li>
+                    </ul>
+                    <a href="form.html?plan=pro"
+                    onclick="selectPlan('pro')"
+                    class="mt-8 block w-full bg-white hover:bg-gray-100 text-indigo-600 text-center py-3 rounded-md text-lg font-semibold transition-colors duration-200">
+                    Choose Pro — ₹549
+                    </a>
+                </div>
+
+                <div class="p-8 rounded-lg shadow-sm pricing-card">
+                    <h3 class="text-2xl font-bold text-gray-900">Family</h3>
+                    <p class="mt-4 text-gray-600">Perfect for sharing with family</p>
+                    <div class="mt-6 flex items-center">
+                        <span class="text-5xl font-extrabold text-gray-900">₹999</span>
+                        <span class="ml-2 text-xl font-medium text-gray-500">/year</span>
+                    </div>
+                    <ul class="mt-6 space-y-4 flex-grow">
+                        <li class="flex items-center">
+                            <i class="fas fa-box text-green-500 mr-2"></i>
+                            <span>Storage: 8 GB</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-sticky-note text-green-500 mr-2"></i>
+                            <span>8 premium SafeQR stickers</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-palette text-green-500 mr-2"></i>
+                            <span>30+ templates unlocked</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-star text-green-500 mr-2"></i>
+                            <span>Priority support</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-plus-circle text-green-500 mr-2"></i>
+                            <span>Add-on credits & rewards</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-gift text-green-500 mr-2"></i>
+                            <span>Further invites = bonus QR & advanced features</span>
+                        </li>
+                    </ul>
+                    <a href="form.html?plan=family"
+                    onclick="selectPlan('family')"
+                    class="mt-8 block w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-3 rounded-md text-lg font-semibold transition-colors duration-200">
+                    Choose Family — ₹999
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+<section id="team" class="py-20 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-gray-100">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+    <h2 class="text-base text-indigo-400 font-semibold tracking-wide uppercase">Our Core Team</h2>
+    <p class="mt-2 text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+      Meet the Founders of SafeQR
+    </p>
+    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-400">
+      The passionate team building the future of secure and accessible information.
+    </p>
+  </div>
+
+  <div class="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+    
+    <div class="p-6 bg-gray-800 rounded-xl shadow-md hover:shadow-xl transform hover:-translate-y-2 transition duration-300 team-card">
+      <img src="assets/teamprofile/nilesh.jpg" alt="Nilesh Shinde"
+        class="team-img w-40 h-40 mx-auto rounded-full object-cover border-4 border-indigo-500 shadow-lg transition-transform duration-300 hover:scale-105">
+      <h3 class="mt-6 text-xl font-bold text-white">Nilesh Shinde</h3>
+      <p class="text-indigo-400 font-medium">Co-Founder & Media Manager</p>
+      <p class="mt-4 text-gray-400 text-sm">
+        Nilesh drives SafeQR’s branding and media presence. His creative approach
+        ensures SafeQR connects with users in impactful ways.
+      </p>
+    </div>
+
+    <div class="p-10 bg-gray-800 rounded-2xl shadow-2xl border-2 border-indigo-500 transform hover:-translate-y-2 transition duration-300 team-card highlighted">
+      <img src="assets/teamprofile/nishant.jpg" alt="Nishant Chavan"
+        class="team-img w-56 h-56 mx-auto rounded-full object-cover border-4 border-indigo-400 shadow-2xl transition-transform duration-300 hover:scale-110">
+      <h3 class="mt-6 text-3xl font-bold text-white">Nishant Chavan</h3>
+      <p class="text-indigo-400 font-semibold">Founder & CEO</p>
+      <p class="mt-4 text-gray-300 text-base">
+        Nishant is the visionary founder of SafeQR, leading strategy and technology.
+        With expertise in SEO and tech, he is focused on making SafeQR secure and scalable.
+      </p>
+    </div>
+
+    <div class="p-6 bg-gray-800 rounded-xl shadow-md hover:shadow-xl transform hover:-translate-y-2 transition duration-300 team-card">
+      <img src="assets/teamprofile/pratik.jpg" alt="Pratik Mandade"
+        class="team-img w-40 h-40 mx-auto rounded-full object-cover border-4 border-indigo-500 shadow-lg transition-transform duration-300 hover:scale-105">
+      <h3 class="mt-6 text-xl font-bold text-white">Pratik Mandade</h3>
+      <p class="text-indigo-400 font-medium">Co-Founder & Head of Operations</p>
+      <p class="mt-4 text-gray-400 text-sm">
+        Pratik oversees operations and delivery, ensuring SafeQR provides a smooth
+        and reliable experience for all users.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+    <div id="contact" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center">
+                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Contact Us</h2>
+                <p class="mt-2 text-3xl font-extrabold leading-8 tracking-tight text-gray-900 sm:text-4xl">
+                    Get in Touch
+                </p>
+                <p class="mt-4 max-w-2xl text-lg text-gray-500 lg:mx-auto">
+                    Have questions or need support? Reach out to us through any of the channels below.
+                </p>
+            </div>
+
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="p-8 rounded-lg shadow-sm contact-card">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Our Details</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-map-marker-alt text-indigo-600 text-xl mr-3"></i>
+                            <p class="text-gray-700">At. Vasudev Nagar, Hingna Road, Nagpur 440016</p>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-phone text-indigo-600 text-xl mr-3"></i>
+                            <p class="text-gray-700">+91 9561488776</p>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope text-indigo-600 text-xl mr-3"></i>
+                            <p class="text-gray-700">help@safeqr.life</p>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mt-8 mb-4">Follow Us</h3>
+                    <div class="flex space-x-6">
+                        <a href="https://www.instagram.com/safe_qr_?igsh=ejk3MXY3ajh4ZGpv" target="_blank" class="text-gray-400 hover:text-indigo-600 transition-colors duration-200">
+                            <i class="fab fa-instagram text-3xl"></i>
+                        </a>
+                        
+                        <a href="https://x.com/qrsafe63111?s=21" target="_blank" class="text-gray-400 hover:text-indigo-600 transition-colors duration-200">
+                            <i class="fab fa-twitter text-3xl"></i>
+                        </a>
+                        
+                    </div>
+                </div>
+
+                <div class="p-8 rounded-lg shadow-sm contact-card">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Send Us a Message</h3>
+                    <form class="space-y-4">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                            <input type="text" id="name" name="name" class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="email" name="email" class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+                            <textarea id="message" name="message" rows="4" class="mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md text-lg font-semibold transition-colors duration-200">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="planPopup" class="fixed inset-0 z-50 flex items-center justify-center p-4 popup-overlay hidden">
+        <div class="relative w-full max-w-md p-8 text-center rounded-2xl shadow-xl popup-box">
+            <button class="close-popup-btn absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h3 class="text-2xl font-bold text-white mb-4">Choose Your Plan First!</h3>
+            <p class="text-gray-300 mb-6">To create or edit your info, please select a plan that suits your needs.</p>
+            <a href="#pricing" class="close-popup-btn w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-md text-lg font-semibold transition-colors duration-200 no-style">
+                View Plans
+            </a>
+        </div>
+    </div>
+
+    <div id="alertPopup" class="fixed inset-0 z-50 flex items-center justify-center p-4 popup-overlay hidden">
+        <div class="relative w-full max-w-md p-8 text-center rounded-2xl shadow-xl popup-box">
+            <button class="close-popup-btn absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h3 id="alertPopupTitle" class="text-2xl font-bold text-white mb-4">Alert</h3>
+            <p id="alertPopupMessage" class="text-gray-300 mb-6">This is an alert message.</p>
+            <button id="alertPopupOkBtn" class="close-popup-btn w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-md text-lg font-semibold transition-colors duration-200">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>  
+    document.addEventListener("DOMContentLoaded", () => {
+        // Popup ko band karne waale saare buttons ke liye logic
+        document.querySelectorAll('.close-popup-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (e.currentTarget.closest('.popup-overlay')) {
+                   e.currentTarget.closest('.popup-overlay').classList.add('hidden');
+                }
+            });
+        });
+
+        // Main UI update function
+        function updateUI() {
+            const authBtn = document.getElementById('authBtn');
+            const dashboardBtn = document.getElementById('dashboardBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const getQrBtn = document.getElementById('getQrBtn');
+            const planPopup = document.getElementById('planPopup');
+
+            // "Get Your QR Now" button hamesha popup dikhayega
+            getQrBtn.onclick = (e) => { 
+                e.preventDefault(); 
+                planPopup.classList.remove('hidden');
+            };
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                // --- STATE: LOGGED OUT ---
+                authBtn.classList.remove('hidden');
+                dashboardBtn.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+            } else {
+                // --- STATE: LOGGED IN ---
+                authBtn.classList.add('hidden');
+                dashboardBtn.classList.remove('hidden');
+                logoutBtn.classList.remove('hidden');
+                
+                logoutBtn.onclick = () => {
+                    localStorage.clear();
+                    window.location.reload();
+                };
+            }
+        }
+
+        // Page load hone par UI ko set karein
+        updateUI();
+    });
+    </script>
+</body>
+</html>
